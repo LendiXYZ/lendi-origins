@@ -1,6 +1,6 @@
 {
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm run build",
+  "buildCommand": "cd ../.. && pnpm --filter @lendi/backend run build",
   "rewrites": [{ "source": "/api/(.*)", "destination": "/api/$1" }],
   "headers": [
     {
