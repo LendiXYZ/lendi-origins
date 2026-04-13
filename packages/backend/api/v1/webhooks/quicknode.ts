@@ -1,12 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { ProcessEscrowEventUseCase } from '../../../src/application/use-case/webhook/process-escrow-event.use-case.js';
 import type { EscrowEventPayload } from '../../../src/application/use-case/webhook/process-escrow-event.use-case.js';
+import { ProcessLendiProofEventUseCase } from '../../../src/application/use-case/webhook/process-lendi-proof-event.use-case.js';
+import type { LendiProofEventPayload } from '../../../src/application/use-case/webhook/process-lendi-proof-event.use-case.js';
 import { container } from '../../../src/infrastructure/container.js';
 import { sendResponse } from '../../../src/interface/handler-factory.js';
 import { withCors } from '../../../src/interface/middleware/with-cors.js';
 import { Response } from '../../../src/interface/response.js';
 
-const useCase = new ProcessEscrowEventUseCase(container.escrowRepo, container.escrowEventRepo);
+const escrowUseCase = new ProcessEscrowEventUseCase(container.escrowRepo, container.escrowEventRepo);
+const lendiProofUseCase = new ProcessLendiProofEventUseCase(container.loanRepo, container.workerRepo);
 
 const handler = async (req: VercelRequest, res: VercelResponse): Promise<void> => {
   if (req.method !== 'POST') {
@@ -37,10 +40,32 @@ const handler = async (req: VercelRequest, res: VercelResponse): Promise<void> =
     }
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const events: EscrowEventPayload[] = Array.isArray(body) ? body : (body.events ?? []);
+    const events = Array.isArray(body) ? body : (body.events ?? []);
 
-    await useCase.execute(events);
-    sendResponse(res, Response.ok({ processed: events.length }));
+    // Separate events by type based on event_type field
+    const escrowEvents: EscrowEventPayload[] = [];
+    const lendiProofEvents: LendiProofEventPayload[] = [];
+
+    for (const event of events) {
+      const eventType = event.event_type;
+      if (eventType === 'EscrowCreated' || eventType === 'EscrowSettled') {
+        escrowEvents.push(event);
+      } else if (eventType === 'IncomeRecorded' || eventType === 'ProofRequested' || eventType === 'EscrowLinked') {
+        lendiProofEvents.push(event);
+      }
+    }
+
+    // Process events in parallel
+    await Promise.all([
+      escrowEvents.length > 0 ? escrowUseCase.execute(escrowEvents) : Promise.resolve(),
+      lendiProofEvents.length > 0 ? lendiProofUseCase.execute(lendiProofEvents) : Promise.resolve(),
+    ]);
+
+    sendResponse(res, Response.ok({
+      processed: events.length,
+      escrow_events: escrowEvents.length,
+      lendi_proof_events: lendiProofEvents.length,
+    }));
   } catch {
     sendResponse(res, Response.internalServerError());
   }

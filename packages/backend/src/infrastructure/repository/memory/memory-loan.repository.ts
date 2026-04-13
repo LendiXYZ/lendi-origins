@@ -8,6 +8,10 @@ export class MemoryLoanRepository implements ILoanRepository {
     return this.store.get(id) ?? null;
   }
 
+  async findByEscrowId(escrowId: string): Promise<Loan | null> {
+    return [...this.store.values()].find((l) => l.escrowId === escrowId) ?? null;
+  }
+
   async findByWorkerId(workerId: string): Promise<Loan[]> {
     return [...this.store.values()]
       .filter((l) => l.workerId === workerId)
