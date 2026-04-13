@@ -21,7 +21,9 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@cofhe/sdk": "^0.4.0",
     "@neondatabase/serverless": "^1",
+    "@reineira-os/sdk": "^0.1.0",
     "@vercel/node": "^5",
     "drizzle-orm": "^0.40",
     "jose": "^6",

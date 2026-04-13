@@ -58,37 +58,47 @@ USDC:               0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
 
 ## 🔧 Pendiente de Implementar (Wave 2 Specific)
 
-### 1. Blockchain Clients
+### 1. Blockchain Clients ✅ COMPLETADO
 
-#### `src/infrastructure/blockchain/LendiProofClient.ts`
-Necesita:
+#### ✅ `src/infrastructure/blockchain/lendi-proof.client.ts`
+Implementado:
 ```typescript
-- isRegistered(address): Promise<boolean>
-- linkEscrow(escrowId: bigint, worker: string, thresholdUSDC: number)
+- isWorkerRegistered(address): Promise<boolean>
+- isLenderRegistered(address): Promise<boolean>
+- getEscrowWorker(escrowId): Promise<Address>
+- getEscrowThreshold(escrowId): Promise<bigint>
 ```
 
-#### `src/infrastructure/blockchain/LendiProofGateClient.ts`
-Necesita:
+#### ✅ `src/infrastructure/blockchain/lendi-proof-gate.client.ts`
+Implementado (3-step FHE flow):
 ```typescript
-- requestVerification(escrowId: bigint)
-- publishVerification(escrowId: bigint, result: boolean, signature)
+- requestVerification(escrowId: bigint): Promise<Hash>
+- publishVerification(escrowId, result, signature): Promise<Hash>
 - isConditionMet(escrowId: bigint): Promise<boolean>
-- getEncryptedHandle(escrowId: bigint): Promise<ebool>
+- getEncryptedHandle(escrowId: bigint): Promise<bytes32>
 ```
 
-#### `src/infrastructure/blockchain/FHEService.ts`
-Necesita:
+#### ✅ `src/infrastructure/blockchain/fhe-decryption.service.ts`
+✅ **INTEGRACIÓN COMPLETA** con @cofhe/sdk:
 ```typescript
+- ensureInitialized() → cofhe.init({ network, rpcUrl })
 - decryptAndPublish(escrowId: bigint)
-  → Get handle → decrypt off-chain → publish result
+  → Get handle from gate
+  → cofhe.decryptForTx(handle) → { plaintext, signature }
+  → Publish result to gate
 ```
 
-#### `src/infrastructure/blockchain/ReinieraSDKClient.ts`
-Necesita:
+#### ✅ `src/infrastructure/blockchain/reineira-sdk.client.ts`
+✅ **INTEGRACIÓN COMPLETA** con @reineira-os/sdk:
 ```typescript
-- createLoanEscrow(params): Promise<bigint>
-  → Usa @reineira-os/sdk para crear escrow con gate condition
+- ensureInitialized() → ReineiraSDK.create({ network, privateKey, rpcUrl })
+- encodeConditionData(worker, threshold) → 28 bytes (20 + 8)
+- createLoanEscrow(params): Promise<EscrowCreationResult>
+  → sdk.escrow.create({ amount, owner, resolver, resolverData })
+  → Returns { escrowId, txHash }
 ```
+
+**IMPORTANTE**: Backend NO llama `linkEscrow()` manualmente. El gate lo hace vía `onConditionSet()` hook automáticamente durante escrow creation.
 
 ### 2. Use Cases a Modificar
 
@@ -139,19 +149,18 @@ Verificar si están instaladas:
 @cofhe/sdk            # Para FHE off-chain decryption
 ```
 
+## ✅ SDKs INTEGRADOS
+
+Ambos SDKs están completamente integrados en el código:
+
+- ✅ `@reineira-os/sdk@^0.1.0` - Integrado en ReinieraSDKClient
+- ✅ `@cofhe/sdk@^0.4.0` - Integrado en FHEDecryptionService
+
+**Instalación en progreso**: `pnpm install --no-frozen-lockfile` (actualizando lockfile)
+
 ## 📝 Siguiente Paso Recomendado
 
-1. **Instalar dependencias faltantes**
-   ```bash
-   cd packages/backend
-   pnpm add @reineira-os/sdk @cofhe/sdk
-   ```
-
-2. **Crear blockchain clients** (4 archivos)
-   - `LendiProofClient.ts`
-   - `LendiProofGateClient.ts`
-   - `FHEService.ts`
-   - `ReinieraSDKClient.ts`
+2. ~~Crear blockchain clients~~ ✅ **COMPLETADO**
 
 3. **Actualizar `create-loan.use-case.ts`** con flujo completo de Wave 2
 
