@@ -36,6 +36,12 @@ export class Loan {
     return this;
   }
 
+  markAsVerificationPending(): this {
+    this.status = LoanStatus.VERIFICATION_PENDING;
+    this.updatedAt = new Date();
+    return this;
+  }
+
   markAsQualified(): this {
     this.status = LoanStatus.QUALIFIED;
     this.updatedAt = new Date();
