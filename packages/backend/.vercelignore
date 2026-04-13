@@ -1,0 +1,12 @@
+node_modules
+.env
+.env.local
+*.test.ts
+**/__tests__
+**/*.test.js
+**/*.test.ts
+coverage
+.vitest
+src/**/__tests__
+dist/**/*.test.js
+dist/**/*.test.js.map
