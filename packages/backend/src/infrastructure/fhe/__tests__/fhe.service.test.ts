@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-for-fhe-service';
+process.env.RPC_URL = process.env.RPC_URL || 'https://sepolia-rollup.arbitrum.io/rpc';
 
 import { FheService } from '../fhe.service.js';
 

@@ -60,6 +60,7 @@ describe('CreateEscrowUseCase', () => {
   beforeEach(() => {
     process.env.JWT_SECRET = 'test-secret-that-is-at-least-32-chars-long';
     process.env.JWT_ISSUER = 'test-issuer';
+    process.env.RPC_URL = 'https://sepolia-rollup.arbitrum.io/rpc';
     process.env.ESCROW_CONTRACT_ADDRESS = ESCROW_CONTRACT;
 
     escrowRepo = new MemoryEscrowRepository();

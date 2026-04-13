@@ -17,6 +17,7 @@ describe('RefreshTokenUseCase', () => {
   beforeEach(() => {
     process.env.JWT_SECRET = 'test-secret-that-is-at-least-32-chars-long';
     process.env.JWT_ISSUER = 'test-issuer';
+    process.env.RPC_URL = 'https://sepolia-rollup.arbitrum.io/rpc';
 
     jwtService = new JwtService();
     sessionRepo = new MemorySessionRepository();

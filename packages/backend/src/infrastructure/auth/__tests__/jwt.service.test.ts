@@ -14,6 +14,7 @@ describe('JwtService', () => {
   beforeEach(() => {
     process.env.JWT_SECRET = 'test-secret-that-is-at-least-32-chars-long';
     process.env.JWT_ISSUER = 'test-issuer';
+    process.env.RPC_URL = 'https://sepolia-rollup.arbitrum.io/rpc';
     (globalThis as Record<string, unknown>).__env__ = undefined;
     service = new JwtService();
   });
