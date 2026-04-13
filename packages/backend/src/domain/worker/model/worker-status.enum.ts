@@ -1,0 +1,6 @@
+export enum WorkerStatus {
+  PENDING = 'PENDING',
+  REGISTERED = 'REGISTERED',
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+}

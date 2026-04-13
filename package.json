@@ -1,0 +1,39 @@
+{
+  "name": "@lendi/monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lendi — Two-sided trust infrastructure for informal credit",
+  "reineira": {
+    "platform": "0.1"
+  },
+  "scripts": {
+    "dev:backend": "pnpm --filter @lendi/backend run dev",
+    "dev:app": "pnpm --filter @lendi/app run dev",
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "lint": "pnpm -r run lint",
+    "format": "prettier --write '**/*.{ts,tsx,js,jsx,json,md}'",
+    "format:check": "prettier --check '**/*.{ts,tsx,js,jsx,json,md}'"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.6",
+    "@semantic-release/release-notes-generator": "^14.1.0",
+    "conventional-changelog-conventionalcommits": "^9.3.0",
+    "prettier": "^3.4.0",
+    "semantic-release": "^25.0.3"
+  },
+  "packageManager": "pnpm@10.30.3",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "license": "MIT",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

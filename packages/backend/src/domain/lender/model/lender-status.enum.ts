@@ -1,0 +1,6 @@
+export enum LenderStatus {
+  PENDING = 'PENDING',
+  REGISTERED = 'REGISTERED',
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+}

@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+:root {
+  /* Lendi brand: navy depth + lime energy */
+  /* Primary interactive (blue #1e4d8c) opacity variants */
+  --blue-3: rgba(30, 77, 140, 0.03);
+  --blue-4: rgba(30, 77, 140, 0.04);
+  --blue-5: rgba(30, 77, 140, 0.05);
+  --blue-6: rgba(30, 77, 140, 0.06);
+  --blue-7: rgba(30, 77, 140, 0.07);
+  --blue-8: rgba(30, 77, 140, 0.08);
+  --blue-10: rgba(30, 77, 140, 0.1);
+  --blue-12: rgba(30, 77, 140, 0.12);
+  --blue-14: rgba(30, 77, 140, 0.14);
+  --blue-15: rgba(30, 77, 140, 0.15);
+  --blue-18: rgba(30, 77, 140, 0.18);
+  --blue-20: rgba(30, 77, 140, 0.2);
+  --blue-25: rgba(30, 77, 140, 0.25);
+  --blue-30: rgba(30, 77, 140, 0.3);
+  --blue-35: rgba(30, 77, 140, 0.35);
+  --blue-40: rgba(30, 77, 140, 0.4);
+  --blue-60: rgba(30, 77, 140, 0.6);
+  --blue-85: rgba(30, 77, 140, 0.85);
+
+  /* Steel (ink-muted #cbd5e1) opacity variants */
+  --steel-4: rgba(203, 213, 225, 0.04);
+  --steel-5: rgba(203, 213, 225, 0.05);
+  --steel-6: rgba(203, 213, 225, 0.06);
+  --steel-7: rgba(203, 213, 225, 0.07);
+  --steel-8: rgba(203, 213, 225, 0.08);
+  --steel-10: rgba(203, 213, 225, 0.1);
+  --steel-12: rgba(203, 213, 225, 0.12);
+  --steel-14: rgba(203, 213, 225, 0.14);
+  --steel-15: rgba(203, 213, 225, 0.15);
+  --steel-18: rgba(203, 213, 225, 0.18);
+  --steel-20: rgba(203, 213, 225, 0.2);
+  --steel-25: rgba(203, 213, 225, 0.25);
+  --steel-30: rgba(203, 213, 225, 0.3);
+  --steel-80: rgba(203, 213, 225, 0.8);
+
+  /* Surfaces — Lendi dark theme (navy) */
+  --surface-void: #050d1a;
+  --surface-deep: #081020;
+  --surface-1: #0a1628;
+  --surface-2: #0f172a;
+  --surface-3: #111c2e;
+  --surface-4: #132337;
+  --surface-base: #0f172a;
+  --surface-raised: #1e293b;
+  --surface-panel: #132337;
+
+  /* Text — Lendi ink */
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --text-subtle: rgba(148, 163, 184, 0.6);
+  --text-faint: rgba(148, 163, 184, 0.5);
+  --text-ghost: rgba(148, 163, 184, 0.45);
+
+  /* Accent — Lendi lime-bright for CTAs, blue for interactive */
+  --accent-blue: #5ee06a;
+  --accent-blue-hover: #3db84a;
+  --accent-blue-dim: var(--blue-12);
+  --accent-steel: #2a8a8a;
+  --accent-steel-hover: #38b2ac;
+
+  /* Layout aliases */
+  --background: var(--surface-base);
+  --foreground: var(--text-primary);
+  --background-secondary: var(--surface-raised);
+
+  --border-dark: var(--steel-12);
+  --border-dark-hover: var(--steel-25);
+
+  --accent-blue-bg: var(--blue-8);
+  --accent-blue-bg-hover: var(--blue-14);
+
+  /* Semantic — Lendi */
+  --status-success: #4ade80;
+  --status-warning: #fbbf24;
+  --status-error: #f87171;
+  --status-info: #60a5fa;
+
+  --blur-sm: 6px;
+  --blur-md: 12px;
+  --blur-lg: 20px;
+  --blur-xl: 24px;
+
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: var(--steel-12);
+  --glass-blur: var(--blur-xl);
+
+  --table-header-bg: var(--steel-5);
+  --table-header-border: var(--steel-10);
+  --table-row-border: var(--steel-7);
+  --table-row-hover: var(--steel-4);
+
+  /* Radius — Lendi */
+  --radius-minimal: 6px;
+  --radius-subtle: 8px;
+  --radius-button: 12px;
+  --radius-input: 12px;
+  --radius-block: 16px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* Shadows — Lendi navy depth */
+  --shadow-blue-glow: 0 0 60px rgba(94, 224, 106, 0.06);
+  --shadow-dark-sm: 0 1px 2px 0 rgba(10, 22, 40, 0.2);
+  --shadow-dark-md: 0 2px 4px -1px rgba(10, 22, 40, 0.3);
+  --shadow-dark-lg: 0 10px 28px -18px rgba(10, 22, 40, 0.28);
+  --shadow-dark-xl: 0 20px 50px -28px rgba(10, 22, 40, 0.35);
+
+  /* Motion — Lendi */
+  --ease-smooth: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-default: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+
+  --header-height: 64px;
+  --content-max-width: 1280px;
+
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-header: 50;
+  --z-modal: 100;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --opacity-high: 0.85;
+  --opacity-medium: 0.7;
+  --opacity-low: 0.5;
+  --opacity-subtle: 0.4;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
+}
+
+input[type="date"] {
+  color-scheme: dark;
+}

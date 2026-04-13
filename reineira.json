@@ -1,0 +1,22 @@
+{
+  "name": "lendi",
+  "version": "0.1.0",
+  "platform": "0.1",
+  "description": "Two-sided trust infrastructure for informal credit",
+  "type": "venture",
+  "repository": "https://github.com/ReineiraOS/platform-modules",
+  "packages": {
+    "backend": "@lendi/backend",
+    "app": "@lendi/app"
+  },
+  "compatibility": {
+    "sdk": "^0.1.0",
+    "node": ">=18.0.0"
+  },
+  "ecosystem": {
+    "atlas": "https://github.com/ReineiraOS/reineira-atlas",
+    "code": "https://github.com/ReineiraOS/reineira-code",
+    "docs": "https://reineira.xyz/docs",
+    "sdk": "https://www.npmjs.com/package/@reineira-os/sdk"
+  }
+}
