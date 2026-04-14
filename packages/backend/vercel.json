@@ -2,12 +2,6 @@
   "installCommand": "npm install -g pnpm@10.30.3 && cd ../.. && pnpm install --frozen-lockfile",
   "buildCommand": "cd ../.. && pnpm --filter @lendi/backend run build",
   "outputDirectory": "dist",
-  "framework": null,
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "rewrites": [{ "source": "/api/(.*)", "destination": "/api/$1" }],
   "headers": [
     {
