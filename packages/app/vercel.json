@@ -1,6 +1,6 @@
 {
-  "installCommand": "npm install -g pnpm@10.30.3 && cd ../.. && pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm run build",
+  "installCommand": "npm install -g pnpm@10.30.3 && cd ../.. && npx pnpm@10.30.3 install --frozen-lockfile",
+  "buildCommand": "npx pnpm@10.30.3 run build",
   "outputDirectory": "dist",
   "rewrites": [{ "source": "/((?!assets/).*)", "destination": "/index.html" }],
   "headers": [
