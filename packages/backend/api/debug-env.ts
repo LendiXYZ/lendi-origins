@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-export default function handler(_req: VercelRequest, res: VercelResponse) {
+export default async function handler(_req: VercelRequest, res: VercelResponse) {
   try {
     // Try to import and initialize the config
-    const { getEnv } = require('../src/core/config.js');
+    const { getEnv } = await import('../dist/core/config.js');
     const env = getEnv();
 
     return res.status(200).json({
