@@ -1,5 +1,6 @@
 {
-  "buildCommand": "pnpm run build",
+  "installCommand": "cd ../.. && pnpm install --shamefully-hoist",
+  "buildCommand": "cd ../.. && pnpm --filter @lendi/backend run build",
   "outputDirectory": "dist",
   "rewrites": [{ "source": "/api/(.*)", "destination": "/api/$1" }],
   "headers": [
