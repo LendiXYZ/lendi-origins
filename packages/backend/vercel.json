@@ -1,5 +1,5 @@
 {
-  "installCommand": "cd ../.. && pnpm install --shamefully-hoist",
+  "installCommand": "corepack enable && corepack prepare pnpm@10.30.3 --activate && cd ../.. && pnpm install --shamefully-hoist",
   "buildCommand": "cd ../.. && pnpm --filter @lendi/backend run build",
   "outputDirectory": "dist",
   "rewrites": [{ "source": "/api/(.*)", "destination": "/api/$1" }],
