@@ -1919,11 +1919,11 @@ TOTAL Loan Flow                  25-60s
 
 **Status:** Evaluating multiple regulatory paths. No decision made yet.
 
-**Source:** Regulatory analysis from lendi-positioning.md, lendi-pilot-plan.md, lendi-wallet-path.md (provided by Privara/ReinieraOS team for stress-testing).
+**Source:** Regulatory analysis documented in lendi-positioning.md, lendi-pilot-plan.md, lendi-wallet-path.md.
 
 ### Business Path Options Under Evaluation
 
-Based on regulatory stress testing, Lendi could potentially operate under these paths:
+Based on regulatory stress testing analysis, Lendi could potentially operate under these paths:
 
 #### Path A — B2B SaaS (Software Vendor to Licensed Lenders)
 - **What Lendi is:** Delaware SaaS company selling FHE underwriting infrastructure to licensed LATAM lenders
