@@ -79,7 +79,7 @@ describe('LendiProof', function () {
         .encryptInputs([Encryptable.uint64(amount)])
         .execute();
 
-      const tx = await contract.connect(worker).recordIncome(encAmount);
+      const tx = await contract.connect(worker).recordIncome(encAmount, 0); // 0 = IncomeSource.MANUAL
       await tx.wait();
 
       // NOTE: In CoFHE 0.4.0, direct value verification requires decryption callbacks
@@ -98,10 +98,10 @@ describe('LendiProof', function () {
         .encryptInputs([Encryptable.uint64(amount2)])
         .execute();
 
-      const tx1 = await contract.connect(worker).recordIncome(enc1);
+      const tx1 = await contract.connect(worker).recordIncome(enc1, 0); // 0 = IncomeSource.MANUAL
       await tx1.wait();
 
-      const tx2 = await contract.connect(worker).recordIncome(enc2);
+      const tx2 = await contract.connect(worker).recordIncome(enc2, 0); // 0 = IncomeSource.MANUAL
       await tx2.wait();
 
       // NOTE: In CoFHE 0.4.0, verifying accumulated values requires decryption
@@ -116,7 +116,7 @@ describe('LendiProof', function () {
         .execute();
 
       await expect(
-        contract.connect(stranger).recordIncome(encAmount)
+        contract.connect(stranger).recordIncome(encAmount, 0)
       ).to.be.revertedWith('Not worker');
     });
 
@@ -125,9 +125,9 @@ describe('LendiProof', function () {
         .encryptInputs([Encryptable.uint64(100_000000n)])
         .execute();
 
-      await expect(contract.connect(worker).recordIncome(encAmount))
+      await expect(contract.connect(worker).recordIncome(encAmount, 0))
         .to.emit(contract, 'IncomeRecorded')
-        .withArgs(worker.address, await hre.ethers.provider.getBlock('latest').then(b => b!.timestamp + 1));
+        .withArgs(worker.address, await hre.ethers.provider.getBlock('latest').then(b => b!.timestamp + 1), 0);
     });
   });
 
@@ -147,7 +147,7 @@ describe('LendiProof', function () {
       const [encAmount] = await cofheClient
         .encryptInputs([Encryptable.uint64(income)])
         .execute();
-      await contract.connect(worker).recordIncome(encAmount);
+      await contract.connect(worker).recordIncome(encAmount, 0);
 
       // Check against $300 threshold
       const threshold = 300_000000n;
@@ -166,7 +166,7 @@ describe('LendiProof', function () {
       const [encAmount] = await cofheClient
         .encryptInputs([Encryptable.uint64(income)])
         .execute();
-      await contract.connect(worker).recordIncome(encAmount);
+      await contract.connect(worker).recordIncome(encAmount, 0);
 
       // Check against $300 threshold
       const threshold = 300_000000n;
@@ -193,7 +193,7 @@ describe('LendiProof', function () {
       const [encAmount] = await cofheClient
         .encryptInputs([Encryptable.uint64(400_000000n)])
         .execute();
-      await contract.connect(worker).recordIncome(encAmount);
+      await contract.connect(worker).recordIncome(encAmount, 0);
 
       await expect(
         contract.connect(lender).proveIncome(worker.address, 300_000000n)
@@ -217,7 +217,7 @@ describe('LendiProof', function () {
       const [encAmount] = await cofheClient
         .encryptInputs([Encryptable.uint64(500_000000n)])
         .execute();
-      await contract.connect(worker).recordIncome(encAmount);
+      await contract.connect(worker).recordIncome(encAmount, 0);
 
       // Fast forward 30 days
       await hre.ethers.provider.send('evm_increaseTime', [30 * 24 * 60 * 60]);
@@ -236,7 +236,7 @@ describe('LendiProof', function () {
       const [encAmount] = await cofheClient
         .encryptInputs([Encryptable.uint64(500_000000n)])
         .execute();
-      await contract.connect(worker).recordIncome(encAmount);
+      await contract.connect(worker).recordIncome(encAmount, 0);
 
       // Try to reset immediately
       await expect(
@@ -252,6 +252,59 @@ describe('LendiProof', function () {
       await expect(contract.connect(worker).resetMonthlyIncome())
         .to.emit(contract, 'MonthlyReset')
         .withArgs(worker.address, await hre.ethers.provider.getBlock('latest').then(b => b!.timestamp + 1));
+    });
+  });
+
+  // ============================================
+  // GETTER FUNCTIONS TESTS
+  // ============================================
+
+  describe('Getter Functions', function () {
+    beforeEach(async function () {
+      await contract.connect(worker).registerWorker();
+    });
+
+    it('allows worker to get their own monthly income', async function () {
+      const [encAmount] = await cofheClient
+        .encryptInputs([Encryptable.uint64(500_000000n)])
+        .execute();
+      await contract.connect(worker).recordIncome(encAmount, 0);
+
+      const income = await contract.connect(worker).getMyMonthlyIncome();
+      expect(income).to.not.equal(0);
+    });
+
+    it('rejects getMyMonthlyIncome from non-worker', async function () {
+      await expect(
+        contract.connect(stranger).getMyMonthlyIncome()
+      ).to.be.revertedWith('Not worker');
+    });
+
+    it('allows lender to get sealed income of worker', async function () {
+      await contract.connect(owner).registerLenderByOwner(lender.address);
+      const [encAmount] = await cofheClient
+        .encryptInputs([Encryptable.uint64(500_000000n)])
+        .execute();
+      await contract.connect(worker).recordIncome(encAmount, 0);
+
+      const income = await contract.connect(lender).getSealedMonthlyIncome(worker.address);
+      expect(income).to.not.equal(0);
+    });
+
+    it('rejects getSealedMonthlyIncome from unauthorized address', async function () {
+      await expect(
+        contract.connect(stranger).getSealedMonthlyIncome(worker.address)
+      ).to.be.revertedWith('Only worker or lenders can view');
+    });
+
+    it('allows worker to get their transaction count', async function () {
+      const [encAmount] = await cofheClient
+        .encryptInputs([Encryptable.uint64(100_000000n)])
+        .execute();
+      await contract.connect(worker).recordIncome(encAmount, 0);
+
+      const txCount = await contract.connect(worker).getMyTxCount();
+      expect(txCount).to.not.equal(0);
     });
   });
 

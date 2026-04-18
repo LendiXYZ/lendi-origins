@@ -17,7 +17,7 @@
 import { createPublicClient, createWalletClient, http, parseAbi, type Address } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { arbitrumSepolia } from 'viem/chains';
-import { config } from '../src/core/config.js';
+import { getEnv } from '../src/core/config.js';
 
 const LENDI_PROOF_ABI = parseAbi([
   'function registerLenderByOwner(address lender) external',
@@ -28,35 +28,38 @@ const LENDI_PROOF_ABI = parseAbi([
 async function main() {
   console.log('🔧 Registering Backend Signer as Lender in LendiProof\n');
 
+  // Load environment configuration
+  const config = getEnv();
+
   // Validate environment
-  if (!config.signerPrivateKey) {
+  if (!config.SIGNER_PRIVATE_KEY) {
     throw new Error('SIGNER_PRIVATE_KEY not found in environment');
   }
-  if (!config.lendiProofAddress) {
+  if (!config.LENDI_PROOF_ADDRESS) {
     throw new Error('LENDI_PROOF_ADDRESS not found in environment');
   }
 
   // Setup clients
-  const account = privateKeyToAccount(config.signerPrivateKey as `0x${string}`);
+  const account = privateKeyToAccount(config.SIGNER_PRIVATE_KEY as `0x${string}`);
   const publicClient = createPublicClient({
     chain: arbitrumSepolia,
-    transport: http(config.rpcUrl),
+    transport: http(config.RPC_URL),
   });
   const walletClient = createWalletClient({
     account,
     chain: arbitrumSepolia,
-    transport: http(config.rpcUrl),
+    transport: http(config.RPC_URL),
   });
 
   console.log('📋 Configuration:');
   console.log(`   Signer Address:     ${account.address}`);
-  console.log(`   LendiProof:         ${config.lendiProofAddress}`);
+  console.log(`   LendiProof:         ${config.LENDI_PROOF_ADDRESS}`);
   console.log(`   Network:            Arbitrum Sepolia (${arbitrumSepolia.id})`);
-  console.log(`   RPC:                ${config.rpcUrl}\n`);
+  console.log(`   RPC:                ${config.RPC_URL}\n`);
 
   // Get contract owner
   const owner = await publicClient.readContract({
-    address: config.lendiProofAddress as Address,
+    address: config.LENDI_PROOF_ADDRESS as Address,
     abi: LENDI_PROOF_ABI,
     functionName: 'owner',
   });
@@ -71,7 +74,7 @@ async function main() {
 
   // Check if already registered
   const isAlreadyRegistered = await publicClient.readContract({
-    address: config.lendiProofAddress as Address,
+    address: config.LENDI_PROOF_ADDRESS as Address,
     abi: LENDI_PROOF_ABI,
     functionName: 'registeredLenders',
     args: [account.address],
@@ -89,7 +92,7 @@ async function main() {
   // Register lender
   try {
     const hash = await walletClient.writeContract({
-      address: config.lendiProofAddress as Address,
+      address: config.LENDI_PROOF_ADDRESS as Address,
       abi: LENDI_PROOF_ABI,
       functionName: 'registerLenderByOwner',
       args: [account.address],
@@ -109,7 +112,7 @@ async function main() {
 
       // Verify registration
       const isNowRegistered = await publicClient.readContract({
-        address: config.lendiProofAddress as Address,
+        address: config.LENDI_PROOF_ADDRESS as Address,
         abi: LENDI_PROOF_ABI,
         functionName: 'registeredLenders',
         args: [account.address],

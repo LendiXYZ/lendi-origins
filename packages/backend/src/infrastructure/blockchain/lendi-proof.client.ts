@@ -5,6 +5,7 @@ import { getLogger } from '../../core/logger.js';
 import { getEnv } from '../../core/config.js';
 
 const LENDI_PROOF_ABI = [
+  // Registration getters
   {
     type: 'function',
     name: 'registeredWorkers',
@@ -19,6 +20,7 @@ const LENDI_PROOF_ABI = [
     inputs: [{ name: 'lender', type: 'address' }],
     outputs: [{ type: 'bool' }],
   },
+  // Escrow metadata getters
   {
     type: 'function',
     name: 'escrowToWorker',
@@ -32,6 +34,38 @@ const LENDI_PROOF_ABI = [
     stateMutability: 'view',
     inputs: [{ name: 'escrowId', type: 'uint256' }],
     outputs: [{ type: 'uint64' }],
+  },
+  // Wave 2: New getter functions for frontend
+  {
+    type: 'function',
+    name: 'getMyMonthlyIncome',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'bytes32' }], // euint64 handle (ciphertext)
+  },
+  {
+    type: 'function',
+    name: 'getSealedMonthlyIncome',
+    stateMutability: 'view',
+    inputs: [{ name: 'worker', type: 'address' }],
+    outputs: [{ name: '', type: 'bytes32' }], // euint64 handle (ciphertext)
+  },
+  {
+    type: 'function',
+    name: 'getMyTxCount',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'bytes32' }], // euint64 handle (ciphertext)
+  },
+  // Wave 2: Updated event with source field
+  {
+    type: 'event',
+    name: 'IncomeRecorded',
+    inputs: [
+      { name: 'worker', type: 'address', indexed: true },
+      { name: 'timestamp', type: 'uint256', indexed: false },
+      { name: 'source', type: 'uint8', indexed: true }, // enum IncomeSource as uint8
+    ],
   },
 ] as const;
 

@@ -10,9 +10,10 @@ export interface LendiProofEventPayload {
   event_type: LendiProofEventType;
   block_number: string;
   worker?: string; // Address
-  amount?: string; // For IncomeRecorded
-  threshold?: string; // For IncomeRecorded
+  amount?: string; // For IncomeRecorded (deprecated - not used)
+  threshold?: string; // For IncomeRecorded (deprecated - not used)
   escrow_id?: string; // For EscrowLinked
+  source?: number; // Wave 2: IncomeSource enum value (0=MANUAL, 1=PRIVARA, etc)
 }
 
 /**
@@ -58,6 +59,7 @@ export class ProcessLendiProofEventUseCase {
   /**
    * Handle IncomeRecorded event
    * Updates worker's last income record timestamp in DB
+   * Wave 2: Now includes source field (0=MANUAL, 1=PRIVARA, etc)
    */
   private async handleIncomeRecorded(event: LendiProofEventPayload): Promise<void> {
     if (!event.worker) {
@@ -70,6 +72,7 @@ export class ProcessLendiProofEventUseCase {
         worker: event.worker,
         txHash: event.tx_hash,
         blockNumber: event.block_number,
+        source: event.source, // Wave 2: Log income source
       },
       'Processing IncomeRecorded event',
     );
