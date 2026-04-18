@@ -86,6 +86,20 @@ class FheService {
     return (result as EncryptedInput[]).map((enc) => this.formatResult(enc));
   }
 
+  async unsealUint64(handle: bigint): Promise<number> {
+    this.assertReady();
+    const { FheTypes } = await import('@cofhe/sdk');
+    const result = await this.client.decryptForView(handle, FheTypes.Uint64).execute();
+    return Number(result.decryptedValue) / 1_000_000;
+  }
+
+  async unsealBool(handle: bigint): Promise<boolean> {
+    this.assertReady();
+    const { FheTypes } = await import('@cofhe/sdk');
+    const result = await this.client.decryptForView(handle, FheTypes.Bool).execute();
+    return Boolean(result.decryptedValue);
+  }
+
   isReady(): boolean {
     return this.client !== null;
   }

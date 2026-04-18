@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install:*)",
+      "Bash(pnpm --filter @lendi/app lint)",
+      "Bash(node:*)",
+      "Bash(pnpm --filter @lendi/app build)",
+      "WebFetch(domain:docs.zerodev.app)"
+    ]
+  }
+}

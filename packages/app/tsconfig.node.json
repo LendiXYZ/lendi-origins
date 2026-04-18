@@ -6,7 +6,9 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": [],
+    "typeRoots": ["./node_modules/@types"]
   },
   "include": ["vite.config.ts", "vitest.config.ts"]
 }

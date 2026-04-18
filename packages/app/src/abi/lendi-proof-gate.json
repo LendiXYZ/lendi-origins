@@ -1,0 +1,114 @@
+[
+  {
+    "inputs": [{ "internalType": "address", "name": "_lendiProof", "type": "address" }],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "escrowId", "type": "uint256" }],
+    "name": "EscrowNotLinked",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "provided", "type": "uint256" },
+      { "internalType": "uint256", "name": "expected", "type": "uint256" }
+    ],
+    "name": "InvalidConditionDataLength",
+    "type": "error"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "escrowId", "type": "uint256" }],
+    "name": "NoVerificationRequested",
+    "type": "error"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "escrowId", "type": "uint256" }],
+    "name": "VerificationNotReady",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true,  "internalType": "uint256", "name": "escrowId", "type": "uint256" },
+      { "indexed": false, "internalType": "bool",    "name": "result",   "type": "bool"    }
+    ],
+    "name": "ConditionChecked",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true,  "internalType": "uint256", "name": "escrowId", "type": "uint256" },
+      { "indexed": false, "internalType": "bool",    "name": "result",   "type": "bool"    }
+    ],
+    "name": "VerificationPublished",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true,  "internalType": "uint256", "name": "escrowId",  "type": "uint256" },
+      { "indexed": true,  "internalType": "address", "name": "worker",    "type": "address" },
+      { "indexed": false, "internalType": "uint64",  "name": "threshold", "type": "uint64"  }
+    ],
+    "name": "VerificationRequested",
+    "type": "event"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "escrowId", "type": "uint256" }],
+    "name": "getEncryptedHandle",
+    "outputs": [{ "internalType": "ebool", "name": "", "type": "bytes32" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "escrowId", "type": "uint256" }],
+    "name": "isConditionMet",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lendiProof",
+    "outputs": [{ "internalType": "contract LendiProof", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "escrowId",      "type": "uint256" },
+      { "internalType": "bytes",   "name": "conditionData", "type": "bytes"   }
+    ],
+    "name": "onConditionSet",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "escrowId",  "type": "uint256" },
+      { "internalType": "bool",    "name": "result",    "type": "bool"    },
+      { "internalType": "bytes",   "name": "signature", "type": "bytes"   }
+    ],
+    "name": "publishVerification",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "escrowId", "type": "uint256" }],
+    "name": "requestVerification",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes4", "name": "interfaceId", "type": "bytes4" }],
+    "name": "supportsInterface",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "pure",
+    "type": "function"
+  }
+]

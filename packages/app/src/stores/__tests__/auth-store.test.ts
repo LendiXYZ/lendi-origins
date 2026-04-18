@@ -60,14 +60,26 @@ describe('useAuthStore', () => {
   });
 
   describe('isAuthorized', () => {
-    it('returns false when no access token', () => {
+    it('returns false when no wallet address', () => {
       expect(useAuthStore.getState().isAuthorized()).toBe(false);
+    });
+
+    it('returns true when wallet address exists', () => {
+      useAuthStore.getState().setWallet('0xabc', 'zerodev');
+
+      expect(useAuthStore.getState().isAuthorized()).toBe(true);
+    });
+  });
+
+  describe('hasJwt', () => {
+    it('returns false when no access token', () => {
+      expect(useAuthStore.getState().hasJwt()).toBe(false);
     });
 
     it('returns true when access token exists', () => {
       useAuthStore.getState().setTokens('access-123', 'refresh-456');
 
-      expect(useAuthStore.getState().isAuthorized()).toBe(true);
+      expect(useAuthStore.getState().hasJwt()).toBe(true);
     });
   });
 });
