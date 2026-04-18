@@ -2,8 +2,29 @@
 
 ## Network: Arbitrum Sepolia
 
-**Deployed:** April 13, 2026
+**Deployed:** April 18, 2026
 **Deployer:** `0x799795DDef56d71A4d98Fac65cb88B7389614aBC`
+
+---
+
+## 🎉 Wave 2 Features
+
+**New in Wave 2 (April 18, 2026):**
+
+1. **IncomeSource Enum** - Track verification method (MANUAL=0, PRIVARA=1, BANK_LINK=2, PAYROLL=3)
+2. **Updated recordIncome()** - Now requires `source` parameter (uint8)
+3. **3 New Getter Functions** - Enable frontend to read encrypted worker data:
+   - `getMyMonthlyIncome()` - Returns euint64 handle for worker's income
+   - `getSealedMonthlyIncome(address)` - Returns sealed income for lender
+   - `getMyTxCount()` - Returns transaction count handle
+4. **Updated IncomeRecorded Event** - Now emits `source` field (indexed)
+5. **26/26 Contract Tests Passing** - Full test coverage including new features
+
+**Breaking Changes from Wave 1:**
+- All contract addresses changed (LendiProof, LendiProofGate, LendiPolicy)
+- `recordIncome()` signature changed (now requires source parameter)
+- Event structure updated (IncomeRecorded now includes source)
+- Backend must update ABIs and handle new enum values
 
 ---
 
@@ -94,19 +115,19 @@ Network: arb-sepolia
 Using USDC at: 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
 
 Deploying LendiProof...
-LendiProof deployed to: 0x809B8FC3C0e12f8F1b280E8A823294F98760fad4
+LendiProof deployed to: 0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac
 
 Deploying LendiProofGate...
-LendiProofGate deployed to: 0x4C57b7c43Cb043eCa1aB00aD152545143d8286cc
+LendiProofGate deployed to: 0x06b0523e63FF904d622aa6d125FdEe11201Bf791
 
 Registering deployer as lender (free by owner)...
 Deployer registered as lender: 0x799795DDef56d71A4d98Fac65cb88B7389614aBC
 
 Registering gate as lender (free by owner)...
-Gate registered as lender: 0x4C57b7c43Cb043eCa1aB00aD152545143d8286cc
+Gate registered as lender: 0x06b0523e63FF904d622aa6d125FdEe11201Bf791
 
 Deploying LendiPolicy...
-LendiPolicy deployed to: 0x73438f4B2757bE51Cd47E2f2D5A8EE3f36Ae176E
+LendiPolicy deployed to: 0x68AE6d292553C0fBa8e797c0056Efe56038227A1
 
 === Deployment Summary ===
 ...
@@ -126,7 +147,7 @@ The deployment script provides verification commands. Run them **one by one**:
 
 ```bash
 npx hardhat verify --network arb-sepolia \
-  0x809B8FC3C0e12f8F1b280E8A823294F98760fad4 \
+  0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac \
   0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
 ```
 
@@ -137,15 +158,15 @@ npx hardhat verify --network arb-sepolia \
 **Expected output:**
 ```
 Successfully verified contract LendiProof on the block explorer.
-https://sepolia.arbiscan.io/address/0x809B8FC3C0e12f8F1b280E8A823294F98760fad4#code
+https://sepolia.arbiscan.io/address/0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac#code
 ```
 
 #### 2. Verify LendiProofGate
 
 ```bash
 npx hardhat verify --network arb-sepolia \
-  0x4C57b7c43Cb043eCa1aB00aD152545143d8286cc \
-  0x809B8FC3C0e12f8F1b280E8A823294F98760fad4
+  0x06b0523e63FF904d622aa6d125FdEe11201Bf791 \
+  0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac
 ```
 
 **Parameters:**
@@ -155,14 +176,14 @@ npx hardhat verify --network arb-sepolia \
 **Expected output:**
 ```
 Successfully verified contract LendiProofGate on the block explorer.
-https://sepolia.arbiscan.io/address/0x4C57b7c43Cb043eCa1aB00aD152545143d8286cc#code
+https://sepolia.arbiscan.io/address/0x06b0523e63FF904d622aa6d125FdEe11201Bf791#code
 ```
 
 #### 3. Verify LendiPolicy
 
 ```bash
 npx hardhat verify --network arb-sepolia \
-  0x73438f4B2757bE51Cd47E2f2D5A8EE3f36Ae176E
+  0x68AE6d292553C0fBa8e797c0056Efe56038227A1
 ```
 
 **Parameters:**
@@ -171,7 +192,7 @@ npx hardhat verify --network arb-sepolia \
 **Expected output:**
 ```
 Successfully verified contract LendiPolicy on the block explorer.
-https://sepolia.arbiscan.io/address/0x73438f4B2757bE51Cd47E2f2D5A8EE3f36Ae176E#code
+https://sepolia.arbiscan.io/address/0x68AE6d292553C0fBa8e797c0056Efe56038227A1#code
 ```
 
 ### Manual Verification (If Automatic Fails)
@@ -215,7 +236,7 @@ npx hardhat flatten contracts/LendiProof.sol > LendiProof_flat.sol
 cast abi-encode "constructor(address)" 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
 
 # For LendiProofGate (LendiProof address)
-cast abi-encode "constructor(address)" 0x809B8FC3C0e12f8F1b280E8A823294F98760fad4
+cast abi-encode "constructor(address)" 0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac
 ```
 
 ---
@@ -227,9 +248,9 @@ cast abi-encode "constructor(address)" 0x809B8FC3C0e12f8F1b280E8A823294F98760fad
 | Contract | Address | Verified |
 |----------|---------|----------|
 | **USDC (Circle)** | `0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d` | ✅ |
-| **LendiProof** | `0x809B8FC3C0e12f8F1b280E8A823294F98760fad4` | ✅ [View](https://sepolia.arbiscan.io/address/0x809B8FC3C0e12f8F1b280E8A823294F98760fad4#code) |
-| **LendiProofGate** | `0x4C57b7c43Cb043eCa1aB00aD152545143d8286cc` | ✅ [View](https://sepolia.arbiscan.io/address/0x4C57b7c43Cb043eCa1aB00aD152545143d8286cc#code) |
-| **LendiPolicy** | `0x73438f4B2757bE51Cd47E2f2D5A8EE3f36Ae176E` | ✅ [View](https://sepolia.arbiscan.io/address/0x73438f4B2757bE51Cd47E2f2D5A8EE3f36Ae176E#code) |
+| **LendiProof** | `0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac` | ✅ [View](https://sepolia.arbiscan.io/address/0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac#code) |
+| **LendiProofGate** | `0x06b0523e63FF904d622aa6d125FdEe11201Bf791` | ✅ [View](https://sepolia.arbiscan.io/address/0x06b0523e63FF904d622aa6d125FdEe11201Bf791#code) |
+| **LendiPolicy** | `0x68AE6d292553C0fBa8e797c0056Efe56038227A1` | ✅ [View](https://sepolia.arbiscan.io/address/0x68AE6d292553C0fBa8e797c0056Efe56038227A1#code) |
 
 ## Configuration for Backend
 
@@ -237,9 +258,9 @@ Add these to your `.env`:
 
 ```env
 # Lendi Contracts - Wave 2
-LENDI_PROOF_ADDRESS=0x809B8FC3C0e12f8F1b280E8A823294F98760fad4
-LENDI_PROOF_GATE_ADDRESS=0x4C57b7c43Cb043eCa1aB00aD152545143d8286cc
-LENDI_POLICY_ADDRESS=0x73438f4B2757bE51Cd47E2f2D5A8EE3f36Ae176E
+LENDI_PROOF_ADDRESS=0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac
+LENDI_PROOF_GATE_ADDRESS=0x06b0523e63FF904d622aa6d125FdEe11201Bf791
+LENDI_POLICY_ADDRESS=0x68AE6d292553C0fBa8e797c0056Efe56038227A1
 USDC_ADDRESS=0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
 
 # ReinieraOS Core (already deployed)
@@ -259,7 +280,7 @@ CHAIN_ID=421614
 The following addresses are registered as lenders (can call `proveIncome()` and `linkEscrow()`):
 
 1. **Deployer (Owner):** `0x799795DDef56d71A4d98Fac65cb88B7389614aBC` ✅
-2. **LendiProofGate:** `0x4C57b7c43Cb043eCa1aB00aD152545143d8286cc` ✅
+2. **LendiProofGate:** `0x06b0523e63FF904d622aa6d125FdEe11201Bf791` ✅
 
 > **Note:** Backend signer must be registered via `registerLenderByOwner()` before it can create escrows.
 
@@ -309,7 +330,7 @@ const escrow = await sdk.escrow
   .build()
   .amount(sdk.usdc(loanAmountUSDC))
   .owner(workerAddress)
-  .condition('0x4C57b7c43Cb043eCa1aB00aD152545143d8286cc', conditionData)
+  .condition('0x06b0523e63FF904d622aa6d125FdEe11201Bf791', conditionData)
   .create();
 
 // escrow.id is the uint256 escrowId
@@ -343,11 +364,19 @@ const isMet = await gate.isConditionMet(escrowId); // true/false
 
 ## Test Results
 
-All 52 tests passing ✅
+All 26 tests passing ✅ (Wave 2)
 
-- LendiProof: 24 tests
-- LendiProofGate: 14 tests
-- LendiPolicy: 17 tests (including Wave 3 prep)
+**Breakdown:**
+- LendiProof: 10 tests (registration, income recording with source, getters)
+- LendiProofGate: 9 tests (verification flow, condition resolution)
+- LendiPolicy: 7 tests (risk scoring, coverage approval)
+
+**New Tests in Wave 2:**
+- `recordIncome` with source parameter validation
+- `getMyMonthlyIncome()` returns correct encrypted handle
+- `getSealedMonthlyIncome()` works for lender queries
+- `getMyTxCount()` tracks transaction count correctly
+- IncomeRecorded event emits source field
 
 ## Security Notes
 
@@ -370,7 +399,7 @@ Once you have your backend signer address, register it:
 // Using ethers.js
 const lendiProof = await ethers.getContractAt(
   'LendiProof',
-  '0x809B8FC3C0e12f8F1b280E8A823294F98760fad4'
+  '0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac'
 );
 
 const backendAddress = process.env.BACKEND_SIGNER_ADDRESS;
@@ -389,19 +418,19 @@ Test that contracts are working:
 
 ```bash
 # Check if worker is registered
-cast call 0x809B8FC3C0e12f8F1b280E8A823294F98760fad4 \
+cast call 0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac \
   "registeredWorkers(address)(bool)" \
   0xYourWorkerAddress \
   --rpc-url https://sepolia-rollup.arbitrum.io/rpc
 
 # Check if lender is registered
-cast call 0x809B8FC3C0e12f8F1b280E8A823294F98760fad4 \
+cast call 0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac \
   "registeredLenders(address)(bool)" \
   0xYourLenderAddress \
   --rpc-url https://sepolia-rollup.arbitrum.io/rpc
 
 # Get base risk score from policy
-cast call 0x73438f4B2757bE51Cd47E2f2D5A8EE3f36Ae176E \
+cast call 0x68AE6d292553C0fBa8e797c0056Efe56038227A1 \
   "BASE_RISK_SCORE()(uint256)" \
   --rpc-url https://sepolia-rollup.arbitrum.io/rpc
 ```
@@ -436,32 +465,32 @@ LENDI_POLICY_ADDRESS=0x73438f4B2757bE51Cd47E2f2D5A8EE3f36Ae176E
 
 ```bash
 # Open LendiProof in browser
-open https://sepolia.arbiscan.io/address/0x809B8FC3C0e12f8F1b280E8A823294F98760fad4#code
+open https://sepolia.arbiscan.io/address/0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac#code
 
 # Open LendiProofGate in browser
-open https://sepolia.arbiscan.io/address/0x4C57b7c43Cb043eCa1aB00aD152545143d8286cc#code
+open https://sepolia.arbiscan.io/address/0x06b0523e63FF904d622aa6d125FdEe11201Bf791#code
 
 # Open LendiPolicy in browser
-open https://sepolia.arbiscan.io/address/0x73438f4B2757bE51Cd47E2f2D5A8EE3f36Ae176E#code
+open https://sepolia.arbiscan.io/address/0x68AE6d292553C0fBa8e797c0056Efe56038227A1#code
 ```
 
 ### Interact with Contracts via Cast
 
 ```bash
 # Register as worker (free)
-cast send 0x809B8FC3C0e12f8F1b280E8A823294F98760fad4 \
+cast send 0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac \
   "registerWorker()" \
   --rpc-url https://sepolia-rollup.arbitrum.io/rpc \
   --private-key $PRIVATE_KEY
 
 # Check escrow linkage
-cast call 0x809B8FC3C0e12f8F1b280E8A823294F98760fad4 \
+cast call 0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac \
   "escrowToWorker(uint256)(address)" \
   1 \
   --rpc-url https://sepolia-rollup.arbitrum.io/rpc
 
 # Check escrow threshold
-cast call 0x809B8FC3C0e12f8F1b280E8A823294F98760fad4 \
+cast call 0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac \
   "escrowToThreshold(uint256)(uint64)" \
   1 \
   --rpc-url https://sepolia-rollup.arbitrum.io/rpc
@@ -477,7 +506,7 @@ npx hardhat clean
 npx hardhat compile
 
 # Re-verify (will say "Already verified" if already done)
-npx hardhat verify --network arb-sepolia 0x809B8FC3C0e12f8F1b280E8A823294F98760fad4 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
+npx hardhat verify --network arb-sepolia 0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
 ```
 
 ## Gas Costs Reference

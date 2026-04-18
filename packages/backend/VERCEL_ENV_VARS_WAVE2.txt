@@ -1,0 +1,79 @@
+# Vercel Environment Variables - Wave 2 Update
+# Actualiza estas variables en: https://vercel.com/settings/environment-variables
+
+# ============================================
+# WAVE 2 CONTRACT ADDRESSES (UPDATED)
+# ============================================
+# Deployed: April 18, 2026
+# Network: Arbitrum Sepolia (421614)
+
+LENDI_PROOF_ADDRESS=0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac
+LENDI_PROOF_GATE_ADDRESS=0x06b0523e63FF904d622aa6d125FdEe11201Bf791
+LENDI_POLICY_ADDRESS=0x68AE6d292553C0fBa8e797c0056Efe56038227A1
+
+# ============================================
+# EXISTENTES (NO CAMBIAR - YA CONFIGURADAS)
+# ============================================
+
+# Auth (ya configuradas)
+JWT_SECRET=<ya-configurada>
+JWT_ISSUER=lendi-api
+ACCESS_TOKEN_TTL=3600
+REFRESH_TOKEN_TTL=2592000
+
+# Blockchain (ya configuradas)
+CHAIN_ID=421614
+RPC_URL=https://sepolia-rollup.arbitrum.io/rpc
+SIGNER_PRIVATE_KEY=<ya-configurada-en-vercel>
+
+# USDC y ReinieraOS (ya configuradas)
+USDC_ADDRESS=0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
+ESCROW_CONTRACT_ADDRESS=0xC4333F84F5034D8691CB95f068def2e3B6DC60Fa
+COVERAGE_MANAGER_ADDRESS=0x766e9508BD41BCE0e788F16Da86B3615386Ff6f6
+POOL_FACTORY_ADDRESS=0x03bAc36d45fA6f5aD8661b95D73452b3BedcaBFD
+POLICY_REGISTRY_ADDRESS=0xf421363B642315BD3555dE2d9BD566b7f9213c8E
+CONFIDENTIAL_USDC_ADDRESS=0x6b6e6479b8b3237933c3ab9d8be969862d4ed89f
+
+# Server (ya configuradas)
+ALLOWED_ORIGINS=<tu-frontend-domain>
+LOG_LEVEL=info
+PORT=3000
+DB_PROVIDER=memory
+
+# Webhooks (ya configuradas si aplica)
+QUICKNODE_WEBHOOK_SECRET=<si-aplica>
+RELAY_WEBHOOK_SECRET=<si-aplica>
+
+# FHE Worker (ya configurada si aplica)
+FHE_WORKER_URL=<si-aplica>
+
+# ReinieraOS API (ya configurada si aplica)
+REINEIRA_API_KEY=<si-aplica>
+
+# ============================================
+# INSTRUCCIONES
+# ============================================
+
+# 1. Ve a tu proyecto en Vercel Dashboard
+# 2. Settings > Environment Variables
+# 3. ACTUALIZA solo estas 3 variables (Wave 2):
+#    - LENDI_PROOF_ADDRESS
+#    - LENDI_PROOF_GATE_ADDRESS
+#    - LENDI_POLICY_ADDRESS
+#
+# 4. Asegúrate que estén configuradas para todos los environments:
+#    - Production
+#    - Preview
+#    - Development
+#
+# 5. Después de actualizar, haz un nuevo deploy:
+#    vercel --prod
+#    o desde el dashboard: Deployments > Redeploy
+
+# ============================================
+# VERIFICACIÓN
+# ============================================
+
+# Después del deploy, verifica en los logs que el backend usa las direcciones correctas:
+# - Busca en logs: "LendiProofClient initialized"
+# - Debería mostrar: 0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac

@@ -9,6 +9,17 @@ interface IERC20 {
 }
 
 /**
+ * @notice Source of income verification
+ * @dev Phase 4: MANUAL only, Phase 6+: PRIVARA/BANK_LINK/PAYROLL
+ */
+enum IncomeSource {
+    MANUAL,      // 0 - Manually recorded by worker
+    PRIVARA,     // 1 - Verified via Privara protocol (Phase 6)
+    BANK_LINK,   // 2 - Bank integration (future)
+    PAYROLL      // 3 - Payroll provider (future)
+}
+
+/**
  * @title LendiProof
  * @notice Core FHE contract for encrypted income verification
  * @dev Stores encrypted income per worker and provides boolean proof to lenders without revealing amounts
@@ -40,7 +51,7 @@ contract LendiProof {
 
     event WorkerRegistered(address indexed worker);
     event LenderRegistered(address indexed lender, uint256 feePaid);
-    event IncomeRecorded(address indexed worker, uint256 timestamp);
+    event IncomeRecorded(address indexed worker, uint256 timestamp, IncomeSource indexed source);
     event ProofRequested(address indexed lender, address indexed worker);
     event EscrowLinked(uint256 indexed escrowId, address indexed worker);
     event MonthlyReset(address indexed worker, uint256 timestamp);
@@ -126,8 +137,9 @@ contract LendiProof {
      * @notice Record encrypted income for the worker
      * @dev CRITICAL: Must call FHE.allowThis() after mutation to enable future transactions
      * @param encAmount Encrypted amount in USDC units (6 decimals)
+     * @param source Source of income verification (MANUAL for Phase 4, PRIVARA/etc for Phase 6+)
      */
-    function recordIncome(InEuint64 calldata encAmount) external onlyWorker {
+    function recordIncome(InEuint64 calldata encAmount, IncomeSource source) external onlyWorker {
         // 1. Convert input to euint64
         euint64 amount = FHE.asEuint64(encAmount);
 
@@ -146,8 +158,8 @@ contract LendiProof {
         FHE.allowThis(txCount[msg.sender]);
         FHE.allow(txCount[msg.sender], msg.sender);
 
-        // 6. Emit event (no amount!)
-        emit IncomeRecorded(msg.sender, block.timestamp);
+        // 6. Emit event with source (no amount!)
+        emit IncomeRecorded(msg.sender, block.timestamp, source);
     }
 
     // ============================================
@@ -197,6 +209,44 @@ contract LendiProof {
         escrowToWorker[escrowId] = worker;
         escrowToThreshold[escrowId] = threshold;
         emit EscrowLinked(escrowId, worker);
+    }
+
+    // ============================================
+    // GETTER FUNCTIONS (FOR FRONTEND UI)
+    // ============================================
+
+    /**
+     * @notice Get worker's sealed monthly income for UI display
+     * @dev Returns euint64 ciphertext handle that worker can decrypt with CoFHE SDK
+     * @dev Frontend uses: cofheClient.decryptForView(ctHash, FheTypes.Uint64)
+     * @return Sealed monthly income value (encrypted ciphertext handle)
+     */
+    function getMyMonthlyIncome() external view onlyWorker returns (euint64) {
+        return monthlyIncome[msg.sender];
+    }
+
+    /**
+     * @notice Get sealed monthly income for any worker
+     * @dev Restricted to worker themselves or registered lenders
+     * @param worker Worker address to query
+     * @return Sealed monthly income value (encrypted ciphertext handle)
+     */
+    function getSealedMonthlyIncome(address worker) external view returns (euint64) {
+        require(
+            msg.sender == worker || registeredLenders[msg.sender],
+            "Only worker or lenders can view"
+        );
+        require(registeredWorkers[worker], "Worker not registered");
+        return monthlyIncome[worker];
+    }
+
+    /**
+     * @notice Get worker's transaction count (for UI display)
+     * @dev Returns encrypted count of income recording transactions
+     * @return Sealed transaction count (encrypted ciphertext handle)
+     */
+    function getMyTxCount() external view onlyWorker returns (euint64) {
+        return txCount[msg.sender];
     }
 
     // ============================================
