@@ -3,14 +3,60 @@ import { toWebAuthnKey, WebAuthnMode, type WebAuthnKey } from '@zerodev/webauthn
 import { toPasskeyValidator, PasskeyValidatorContractVersion } from '@zerodev/passkey-validator';
 import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient, constants } from '@zerodev/sdk';
 import type { KernelAccountClient } from '@zerodev/sdk';
-import { createPublicClient, http, type Hex } from 'viem';
+import { createPublicClient, http, encodeAbiParameters, type Hex } from 'viem';
 import { signMessage as viemSignMessage } from 'viem/actions';
 import { arbitrumSepolia } from 'viem/chains';
 import { entryPoint07Address } from 'viem/account-abstraction';
 import { WindowHelper } from '@/helpers/WindowHelper';
 
 const ENTRY_POINT = { address: entryPoint07Address, version: '0.7' as const };
-const KERNEL_VERSION = constants.KERNEL_V3_3;
+const KERNEL_VERSION = constants.KERNEL_V3_1;
+
+
+
+/**
+ * Force the platform authenticator (e.g. Windows Hello) for WebAuthn ceremonies.
+ *
+ * The on-chain V0_0_3 WebAuthnValidator hardcodes `requireUserVerification = true`
+ * and checks the UV flag (bit 2) in the authenticator data. Synced/roaming passkeys
+ * (Google Password Manager, iCloud Keychain) may return UV=0 even when the browser
+ * requests `userVerification: "required"`, which causes AA24 on-chain.
+ *
+ * Platform authenticators (Windows Hello, Touch ID) always set UV=1 because they
+ * inherently require biometric or PIN verification.
+ *
+ * This helper temporarily patches `navigator.credentials.create` and
+ * `navigator.credentials.get` to enforce `authenticatorAttachment: "platform"`
+ * and runs the provided callback within that scope.
+ */
+async function withPlatformAuthenticator<T>(fn: () => Promise<T>): Promise<T> {
+  const origCreate = navigator.credentials.create.bind(navigator.credentials);
+  const origGet = navigator.credentials.get.bind(navigator.credentials);
+
+  navigator.credentials.create = async function (opts?: CredentialCreationOptions) {
+    if (opts?.publicKey) {
+      opts.publicKey.authenticatorSelection = {
+        ...opts.publicKey.authenticatorSelection,
+        authenticatorAttachment: 'platform',
+      };
+    }
+    return origCreate(opts);
+  } as typeof navigator.credentials.create;
+
+  navigator.credentials.get = async function (opts?: CredentialRequestOptions) {
+    if (opts?.publicKey) {
+      (opts.publicKey as any).authenticatorAttachment = 'platform';
+    }
+    return origGet(opts);
+  } as typeof navigator.credentials.get;
+
+  try {
+    return await fn();
+  } finally {
+    navigator.credentials.create = origCreate;
+    navigator.credentials.get = origGet;
+  }
+}
 
 function getChain() {
   return arbitrumSepolia;
@@ -34,7 +80,14 @@ async function buildKernelClient(webAuthnKey: WebAuthnKey): Promise<KernelAccoun
     kernelVersion: KERNEL_VERSION,
     validatorContractVersion: PasskeyValidatorContractVersion.V0_0_3_PATCHED,
   });
-  console.log('[ZeroDev] toPasskeyValidator OK');
+
+  const _origSignUserOp = passkeyValidator.signUserOperation.bind(passkeyValidator);
+  passkeyValidator.signUserOperation = async (userOp) => {
+    const sig = await _origSignUserOp(userOp);
+    return sig;
+  };
+
+  console.log('[ZeroDev] toPasskeyValidator OK (V0_0_3)');
 
   const account = await createKernelAccount(publicClient, {
     plugins: { sudo: passkeyValidator },
@@ -106,12 +159,14 @@ export class ZeroDevProvider implements IWalletProvider {
         setTimeout(() => reject(new Error('WebAuthn timeout — cerrá el diálogo de Windows y probá de nuevo')), 90_000)
       );
       webAuthnKey = await Promise.race([
-        toWebAuthnKey({
-          passkeyName: username,
-          passkeyServerUrl: passkeyServerUrl,
-          mode: WebAuthnMode.Register,
-          passkeyServerHeaders: {},
-        }),
+        withPlatformAuthenticator(() =>
+          toWebAuthnKey({
+            passkeyName: username,
+            passkeyServerUrl: passkeyServerUrl,
+            mode: WebAuthnMode.Register,
+            passkeyServerHeaders: {},
+          }),
+        ),
         timeout,
       ]);
       console.log('[ZeroDev] register toWebAuthnKey OK');
@@ -161,12 +216,14 @@ export class ZeroDevProvider implements IWalletProvider {
 
     let webAuthnKey: WebAuthnKey;
     try {
-      webAuthnKey = await toWebAuthnKey({
-        passkeyName: '',
-        passkeyServerUrl: passkeyServerUrl,
-        mode: WebAuthnMode.Login,
-        passkeyServerHeaders: {},
-      });
+      webAuthnKey = await withPlatformAuthenticator(() =>
+        toWebAuthnKey({
+          passkeyName: '',
+          passkeyServerUrl: passkeyServerUrl,
+          mode: WebAuthnMode.Login,
+          passkeyServerHeaders: {},
+        }),
+      );
       console.log('[ZeroDev] login toWebAuthnKey OK');
     } catch (e) {
       const name = (e as Error)?.name
@@ -211,10 +268,12 @@ export class ZeroDevProvider implements IWalletProvider {
   async signMessage(message: string): Promise<string> {
     if (!this.kernelClient?.account) throw new Error('Not connected');
     await WindowHelper.ensureFocus();
-    return viemSignMessage(this.kernelClient, {
-      account: this.kernelClient.account,
-      message,
-    });
+    return withPlatformAuthenticator(() =>
+      viemSignMessage(this.kernelClient!, {
+        account: this.kernelClient!.account!,
+        message,
+      })
+    );
   }
 
   getAddress(): string | null {
@@ -227,17 +286,30 @@ export class ZeroDevProvider implements IWalletProvider {
 
   async sendUserOperation(calls: Call[]): Promise<string> {
     if (!this.kernelClient?.account) throw new Error('Not connected');
+    await WindowHelper.ensureFocus();
 
-    const callData = await this.kernelClient.account.encodeCalls(
-      calls.map((c) => ({
-        to: c.to as Hex,
-        data: c.data as Hex,
-        value: c.value ?? 0n,
-      })),
-    );
+    const mappedCalls = calls.map((c) => ({
+      to: c.to as Hex,
+      data: c.data as Hex,
+      value: c.value ?? 0n,
+    }));
 
-    const userOpHash = await this.kernelClient.sendUserOperation({ callData });
-    const receipt = await this.kernelClient.waitForUserOperationReceipt({ hash: userOpHash });
-    return receipt.receipt.transactionHash;
+    console.log('[ZeroDev] sendUserOperation — calls:', mappedCalls.length, 'sender:', this._address);
+
+    const callData = await this.kernelClient.account.encodeCalls(mappedCalls);
+
+    try {
+      const userOpHash = await withPlatformAuthenticator(() =>
+        this.kernelClient!.sendUserOperation({ callData })
+      );
+      console.log('[ZeroDev] userOp sent — hash:', userOpHash);
+      const receipt = await this.kernelClient.waitForUserOperationReceipt({ hash: userOpHash });
+      console.log('[ZeroDev] userOp confirmed — txHash:', receipt.receipt.transactionHash);
+      return receipt.receipt.transactionHash;
+    } catch (e) {
+      const serialized = (() => { try { return JSON.stringify(e, Object.getOwnPropertyNames(e as object)) } catch { return String(e) } })()
+      console.error('[ZeroDev] sendUserOperation FAILED:', serialized);
+      throw e;
+    }
   }
 }

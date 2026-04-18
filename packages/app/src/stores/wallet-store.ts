@@ -38,6 +38,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   ensureConnected: async () => {
     if (_provider) return;
+    console.warn('[wallet-store] ensureConnected: _provider is null — triggering reconnect (will prompt WebAuthn)');
     if (_reconnectPromise) {
       await _reconnectPromise;
       return;

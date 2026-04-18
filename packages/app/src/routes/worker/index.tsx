@@ -1,26 +1,51 @@
+import { Link } from '@tanstack/react-router'
+import { WorkerOnboarding } from '@/components/worker/WorkerOnboarding'
+import { PrivacyNote } from '@/components/shared/PrivacyNote'
 import { strings } from '@/i18n'
 
 export function WorkerDashboardPage() {
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          {strings.worker.dashboard.title}
-        </h1>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">
-          {strings.worker.dashboard.subtitle}
-        </p>
-      </div>
+    <WorkerOnboarding>
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+            {strings.worker.dashboard.title}
+          </h1>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            {strings.worker.dashboard.subtitle}
+          </p>
+        </div>
 
-      {/* Phase 2: WorkerOnboarding (registerWorker if not registered) */}
-      {/* Phase 3: EncryptionStep + TxStatus */}
-      {/* Phase 4: BalanceView + IncomeCapture + auto-capture status */}
+        <PrivacyNote variant="block" />
 
-      <div className="rounded-xl border border-[var(--border-dark)] bg-[var(--surface-raised)] p-6">
-        <p className="text-sm text-[var(--text-muted)]">
-          WorkerOnboarding + BalanceView + IncomeCapture — disponible en Fase 4
-        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link
+            to="/worker/income"
+            className="group flex flex-col gap-2 rounded-xl border border-[var(--border-dark)] bg-[var(--surface-raised)] p-5 transition-all hover:border-[var(--accent-blue)] hover:bg-[var(--blue-5)]"
+          >
+            <span className="text-2xl">💰</span>
+            <p className="font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent-blue)]">
+              {strings.nav.worker.income}
+            </p>
+            <p className="text-xs text-[var(--text-secondary)]">
+              Registra y cifra tu ingreso
+            </p>
+          </Link>
+
+          <Link
+            to="/worker/apply"
+            className="group flex flex-col gap-2 rounded-xl border border-[var(--border-dark)] bg-[var(--surface-raised)] p-5 transition-all hover:border-[var(--accent-blue)] hover:bg-[var(--blue-5)]"
+          >
+            <span className="text-2xl">📋</span>
+            <p className="font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent-blue)]">
+              {strings.nav.worker.apply}
+            </p>
+            <p className="text-xs text-[var(--text-secondary)]">
+              {strings.worker.apply.subtitle}
+            </p>
+          </Link>
+        </div>
       </div>
-    </div>
+    </WorkerOnboarding>
   )
 }
