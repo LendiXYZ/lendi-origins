@@ -24,7 +24,6 @@ export class VercelKvUserRepository implements IUserRepository {
       walletProvider: user.walletProvider,
       email: user.email,
       createdAt: user.createdAt.toISOString(),
-      updatedAt: user.updatedAt.toISOString(),
     });
   }
 
@@ -36,7 +35,6 @@ export class VercelKvUserRepository implements IUserRepository {
       walletProvider: parsed.walletProvider,
       email: parsed.email || undefined,
       createdAt: new Date(parsed.createdAt),
-      updatedAt: new Date(parsed.updatedAt),
     });
   }
 
