@@ -47,6 +47,19 @@ export function WorkerDashboardPage() {
               {strings.worker.apply.subtitle}
             </p>
           </Link>
+
+          <Link
+            to="/worker/loans"
+            className="group flex flex-col gap-2 rounded-xl border border-[var(--border-dark)] bg-[var(--surface-raised)] p-5 transition-all hover:border-[var(--accent-blue)] hover:bg-[var(--blue-5)]"
+          >
+            <span className="text-2xl">🏦</span>
+            <p className="font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent-blue)]">
+              Mis Préstamos
+            </p>
+            <p className="text-xs text-[var(--text-secondary)]">
+              Verifica condición y recibe fondos
+            </p>
+          </Link>
         </div>
       </div>
     </WorkerOnboarding>

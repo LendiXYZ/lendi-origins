@@ -4,6 +4,7 @@ import { txHashSchema } from '../../../core/validator.js';
 export const ReportEscrowTransactionDtoSchema = z.object({
   tx_hash: txHashSchema,
   entity_id: z.string().min(1),
+  on_chain_id: z.string().optional(),
 });
 export type ReportEscrowTransactionDto = z.infer<typeof ReportEscrowTransactionDtoSchema>;
 

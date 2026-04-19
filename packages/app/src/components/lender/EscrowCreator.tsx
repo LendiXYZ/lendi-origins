@@ -16,8 +16,15 @@ const STEP_TO_TX: Record<string, TxState> = {
   error:      'error',
 }
 
+export interface CreatedEscrowInfo {
+  escrowId: string
+  txHash: string
+  amount: number
+  workerAddress: string
+}
+
 interface EscrowCreatorProps {
-  onCreated?: () => void
+  onCreated?: (info: CreatedEscrowInfo) => void
 }
 
 export function EscrowCreator({ onCreated }: EscrowCreatorProps) {
@@ -37,8 +44,15 @@ export function EscrowCreator({ onCreated }: EscrowCreatorProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
-    await execute({ workerAddress: worker.trim(), loanAmount: amountParsed, threshold: thresholdParsed })
-    onCreated?.()
+    const result = await execute({ workerAddress: worker.trim(), loanAmount: amountParsed, threshold: thresholdParsed })
+    if (result) {
+      onCreated?.({
+        escrowId: result.escrowId.toString(),
+        txHash: result.txHash,
+        amount: amountParsed,
+        workerAddress: worker.trim(),
+      })
+    }
   }
 
   function handleReset() {

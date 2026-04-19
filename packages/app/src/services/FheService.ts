@@ -104,6 +104,16 @@ class FheService {
     return result as boolean;
   }
 
+  async decryptBoolForTx(handle: bigint): Promise<{ value: boolean; signature: `0x${string}` }> {
+    this.assertReady();
+    // withoutPermit() uses global allowance — valid after FHE.allowPublic was called on-chain
+    const result = await this.client.decryptForTx(handle).withoutPermit().execute();
+    return {
+      value: result.decryptedValue !== 0n,
+      signature: result.signature,
+    };
+  }
+
   isReady(): boolean {
     return this.client !== null;
   }

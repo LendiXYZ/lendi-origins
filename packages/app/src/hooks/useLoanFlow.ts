@@ -58,9 +58,11 @@ export function useLoanFlow() {
       setTxHash(hash)
       setEscrowId(id)
 
-      // 4. Report tx to backend (non-fatal)
+      // 4. Report tx + on-chain ID to backend (non-fatal)
       try {
-        await EscrowService.reportTransaction(hash, escrow.public_id)
+        if (hash) {
+          await EscrowService.reportTransaction(hash, escrow.public_id, id.toString())
+        }
       } catch {
         console.warn('[useLoanFlow] backend reportTransaction failed — non-fatal')
       }

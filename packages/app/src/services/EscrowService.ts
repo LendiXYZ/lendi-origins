@@ -62,10 +62,11 @@ export class EscrowService {
   static async reportTransaction(
     txHash: string,
     entityId: string,
+    onChainId?: string,
   ): Promise<{ entity_id: string; tx_hash: string; status: string }> {
     const { data } = await httpClient.post<{ entity_id: string; tx_hash: string; status: string }>(
       '/v1/transactions/escrows/report',
-      { tx_hash: txHash, entity_id: entityId },
+      { tx_hash: txHash, entity_id: entityId, ...(onChainId ? { on_chain_id: onChainId } : {}) },
     );
     return data;
   }

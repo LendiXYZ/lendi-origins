@@ -6,6 +6,7 @@ import { RolePickerPage } from '@/routes/index'
 import { WorkerDashboardPage } from '@/routes/worker/index'
 import { WorkerIncomePage } from '@/routes/worker/income'
 import { WorkerApplyPage } from '@/routes/worker/apply'
+import { WorkerLoansPage } from '@/routes/worker/loans'
 import { WorkerAdvisorPage } from '@/routes/worker/advisor'
 import { LenderDashboardPage } from '@/routes/lender/index'
 import { LenderVerifyPage } from '@/routes/lender/verify'
@@ -66,6 +67,12 @@ const workerApplyRoute = createRoute({
   component: WorkerApplyPage,
 })
 
+const workerLoansRoute = createRoute({
+  getParentRoute: () => workerLayoutRoute,
+  path: '/worker/loans',
+  component: WorkerLoansPage,
+})
+
 const workerAdvisorRoute = createRoute({
   getParentRoute: () => workerLayoutRoute,
   path: '/worker/advisor',
@@ -113,6 +120,7 @@ const workerTree = workerLayoutRoute.addChildren([
   workerIndexRoute,
   workerIncomeRoute,
   workerApplyRoute,
+  workerLoansRoute,
   workerAdvisorRoute,
 ])
 

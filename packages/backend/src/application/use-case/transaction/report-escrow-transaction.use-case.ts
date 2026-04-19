@@ -24,11 +24,16 @@ export class ReportEscrowTransactionUseCase {
     escrow.markAsProcessing();
     escrow.txHash = dto.tx_hash;
 
-    const bufferedEvent = await this.escrowEventRepository.findByTxHash(dto.tx_hash);
-    if (bufferedEvent && bufferedEvent.eventType === 'EscrowCreated') {
+    if (dto.on_chain_id) {
+      escrow.onChainEscrowId = dto.on_chain_id;
       escrow.markAsOnChain();
-      escrow.onChainEscrowId = bufferedEvent.escrowId;
-      await this.escrowEventRepository.delete(bufferedEvent.txHash);
+    } else {
+      const bufferedEvent = await this.escrowEventRepository.findByTxHash(dto.tx_hash);
+      if (bufferedEvent && bufferedEvent.eventType === 'EscrowCreated') {
+        escrow.markAsOnChain();
+        escrow.onChainEscrowId = bufferedEvent.escrowId;
+        await this.escrowEventRepository.delete(bufferedEvent.txHash);
+      }
     }
 
     await this.escrowRepository.update(escrow);
