@@ -15,8 +15,10 @@
     "generate:types": "openapi-typescript ../backend/openapi.json -o src/generated/api-types.ts"
   },
   "dependencies": {
+    "@cofhe/sdk": "^0.4.0",
     "@radix-ui/react-dialog": "^1",
     "@radix-ui/react-slot": "^1",
+    "@reineira-os/sdk": "^0.2.0",
     "@tanstack/react-query": "^5",
     "@tanstack/react-router": "^1",
     "@zerodev/ecdsa-validator": "^5.4.9",
@@ -24,14 +26,13 @@
     "@zerodev/permissions": "^5.6.3",
     "@zerodev/sdk": "^5.5.7",
     "@zerodev/webauthn-key": "^5.5.0",
-    "@cofhe/sdk": "^0.4.0",
-    "tfhe": "0.11.1",
     "axios": "^1",
     "class-variance-authority": "^0.7",
     "clsx": "^2",
     "react": "^19",
     "react-dom": "^19",
     "tailwind-merge": "^3",
+    "tfhe": "0.11.1",
     "viem": "^2",
     "zustand": "^5"
   },

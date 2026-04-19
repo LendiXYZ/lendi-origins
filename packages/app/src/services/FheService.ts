@@ -149,6 +149,15 @@ class FheService {
               const typedData = JSON.parse((params?.[1] as string) ?? '{}');
               return useWalletStore.getState().signTypedData(typedData);
             }
+            if (method === 'eth_sendTransaction') {
+              const { useWalletStore } = await import('@/stores/wallet-store');
+              const tx = (params?.[0] as { to: string; data?: string; value?: string }) ?? {};
+              return useWalletStore.getState().sendUserOperation([{
+                to: tx.to,
+                data: tx.data ?? '0x',
+                value: tx.value ? BigInt(tx.value) : undefined,
+              }]);
+            }
             throw new Error(`Unsupported method: ${method}`);
           },
         }),

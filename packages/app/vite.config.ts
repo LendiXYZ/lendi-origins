@@ -19,6 +19,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      // Redirect Node.js cofhejs to browser build (used internally by @reineira-os/sdk)
+      'cofhejs/node': resolve(__dirname, '../../node_modules/cofhejs/dist/web.mjs'),
     },
   },
   optimizeDeps: {

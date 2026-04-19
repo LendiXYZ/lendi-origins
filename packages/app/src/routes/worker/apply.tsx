@@ -1,4 +1,5 @@
 import { strings } from '@/i18n'
+import { LoanApply } from '@/components/worker/LoanApply'
 
 export function WorkerApplyPage() {
   return (
@@ -12,13 +13,7 @@ export function WorkerApplyPage() {
         </p>
       </div>
 
-      {/* Phase 7: LoanApply form + EscrowCreator + useLoanFlow */}
-
-      <div className="rounded-xl border border-[var(--border-dark)] bg-[var(--surface-raised)] p-6">
-        <p className="text-sm text-[var(--text-muted)]">
-          LoanApply + EscrowCreator — disponible en Fase 7
-        </p>
-      </div>
+      <LoanApply />
     </div>
   )
 }

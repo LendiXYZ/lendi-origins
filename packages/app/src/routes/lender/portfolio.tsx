@@ -1,6 +1,11 @@
+import { useState } from 'react'
 import { strings } from '@/i18n'
+import { EscrowCreator } from '@/components/lender/EscrowCreator'
+import { PortfolioTable } from '@/components/lender/PortfolioTable'
 
 export function LenderPortfolioPage() {
+  const [refreshKey, setRefreshKey] = useState(0)
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -12,16 +17,13 @@ export function LenderPortfolioPage() {
         </p>
       </div>
 
-      {/* Phase 7: PortfolioTable + EscrowCreator */}
-      {/* escrowId: bigint (uint256) throughout */}
+      <EscrowCreator onCreated={() => setRefreshKey((k) => k + 1)} />
 
-      <div className="rounded-xl border border-[var(--border-dark)] bg-[var(--surface-raised)] p-6">
-        <p className="text-sm text-[var(--text-muted)]">
-          {strings.lender.portfolio.empty}
-        </p>
-        <p className="mt-2 text-xs text-[var(--text-dim)]">
-          PortfolioTable + EscrowCreator — disponible en Fase 7
-        </p>
+      <div>
+        <h2 className="mb-3 text-base font-semibold text-[var(--text-primary)]">
+          Escrows activos
+        </h2>
+        <PortfolioTable refreshKey={refreshKey} />
       </div>
     </div>
   )
