@@ -3,6 +3,13 @@ import { useWalletStore } from '@/stores/wallet-store'
 import { WorkerService } from '@/services/WorkerService'
 import { IncomeEventService, type IncomeEvent } from '@/services/IncomeEventService'
 import { getSourceLabel, getSourceIcon } from '@/types/income'
+
+const SOURCE_NUM: Record<string, number> = {
+  MANUAL: 0, PRIVARA: 1, BANK_LINK: 2, PAYROLL: 3,
+}
+function resolveSource(source: number | string): number {
+  return typeof source === 'string' ? (SOURCE_NUM[source] ?? 0) : source
+}
 import { strings } from '@/i18n'
 
 export function IncomeHistory() {
@@ -68,11 +75,12 @@ export function IncomeHistory() {
               className="flex items-center justify-between rounded-lg border border-[var(--border-dark)] bg-[var(--background)] px-4 py-3"
             >
               <div className="flex items-center gap-3">
-                <span className="text-lg" aria-hidden>{getSourceIcon(event.source)}</span>
+                <span className="text-lg" aria-hidden>{getSourceIcon(resolveSource(event.source))}</span>
                 <div>
                   <p className="text-sm font-medium text-[var(--text-primary)]">
-                    {getSourceLabel(event.source)}
+                    {getSourceLabel(resolveSource(event.source))}
                   </p>
+                  <p className="text-xs font-mono text-[var(--text-muted)]">$●●●●</p>
                   <p className="text-xs text-[var(--text-muted)]">
                     {new Date(event.created_at).toLocaleDateString('es-MX', {
                       day: 'numeric',
@@ -84,7 +92,7 @@ export function IncomeHistory() {
               </div>
 
               <a
-                href={`https://sepolia.arbiscan.io/tx/${event.tx_hash}`}
+                href={`https://arbitrum-sepolia.blockscout.com/tx/${event.tx_hash}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-[var(--accent-blue)] hover:underline"

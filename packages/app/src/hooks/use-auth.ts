@@ -32,7 +32,7 @@ export async function authenticateWithSiwe(address: string) {
 
   const domain = window.location.host;
   const origin = window.location.origin;
-  const statement = 'Sign in to ReineiraOS';
+  const statement = 'Sign in with Ethereum to Lendi';
   const message = buildSiweMessage(domain, address, statement, origin, nonce);
 
   console.log('[auth] SIWE — signing message (will prompt passkey)');

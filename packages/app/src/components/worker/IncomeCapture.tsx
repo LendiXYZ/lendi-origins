@@ -48,8 +48,8 @@ export function IncomeCapture({ onRecorded }: IncomeCaptureProps) {
         const address = useWalletStore.getState().address!
         const worker = await WorkerService.getOrCreate(address)
         await IncomeEventService.create(worker.id, txHash, IncomeSource.MANUAL)
-      } catch {
-        // Backend sync failure doesn't block the UX — tx is already on-chain
+      } catch (e) {
+        console.error('[income] backend sync failed:', e)
       }
 
       setAmount('')
