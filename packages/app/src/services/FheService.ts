@@ -99,6 +99,7 @@ class FheService {
   async unsealBool(handle: bigint): Promise<boolean> {
     this.assertReady();
     const { FheTypes } = await import('@cofhe/sdk');
+    await this.client.permits.getOrCreateSelfPermit();
     const result = await this.client.decryptForView(handle, FheTypes.Bool).execute();
     return result as boolean;
   }

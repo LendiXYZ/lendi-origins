@@ -6,7 +6,8 @@
       "Bash(node:*)",
       "Bash(pnpm --filter @lendi/app build)",
       "WebFetch(domain:docs.zerodev.app)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(pnpm --filter @lendi/app exec tsc --noEmit)"
     ]
   }
 }

@@ -5,5 +5,5 @@ export const CONTRACTS = {
   usdc:           '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d' as `0x${string}`,
   chainId:        421614,
   rpc:            'https://sepolia-rollup.arbitrum.io/rpc',
-  explorer:       'https://sepolia.arbiscan.io',
+  explorer:       'https://arbitrum-sepolia.blockscout.com',
 } as const

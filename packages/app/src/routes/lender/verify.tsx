@@ -1,4 +1,5 @@
 import { strings } from '@/i18n'
+import { VerifyIncome } from '@/components/lender/VerifyIncome'
 
 export function LenderVerifyPage() {
   return (
@@ -12,18 +13,7 @@ export function LenderVerifyPage() {
         </p>
       </div>
 
-      {/* Phase 5: VerifyIncome component */}
-      {/* worker address + threshold → proveIncome() → CoFHE (10-30s) → unsealBool → ✅/❌ */}
-      {/* Privacy: income amount NEVER shown in this view */}
-
-      <div className="rounded-xl border border-[var(--border-dark)] bg-[var(--surface-raised)] p-6">
-        <p className="text-sm text-[var(--text-muted)]">
-          VerifyIncome + TxStatus — disponible en Fase 5
-        </p>
-        <p className="mt-3 text-xs text-[var(--text-dim)] font-mono">
-          {strings.lender.verify.privacyStatement}
-        </p>
-      </div>
+      <VerifyIncome />
     </div>
   )
 }
