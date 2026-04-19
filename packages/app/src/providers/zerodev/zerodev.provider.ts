@@ -99,23 +99,14 @@ async function buildKernelClient(webAuthnKey: WebAuthnKey, withPaymaster = true)
   const zerodevRpcUrl = import.meta.env.VITE_ZERODEV_BUNDLER_URL;
 
   if (!withPaymaster) {
-    // No paymaster — account pays its own gas via the bundler.
-    // ZeroDev's bundler requires paymaster for all UserOps (rejects with AA21 otherwise).
-    // Pimlico's bundler accepts self-funded UserOps and simulates against real Arbitrum
-    // Sepolia which has the CoFHE coprocessor, so FHE stored-ciphertext ops succeed.
-    const pimlicoKey = import.meta.env.VITE_PIMLICO_API_KEY;
-    if (!pimlicoKey) {
-      throw new Error(
-        'VITE_PIMLICO_API_KEY no configurada. ' +
-        'Obtén una key gratis en https://dashboard.pimlico.io y agrégala al .env'
-      );
-    }
-    const pimlicoBundlerUrl = `https://api.pimlico.io/v2/421614/rpc?apikey=${pimlicoKey}`;
-    console.log('[ZeroDev] building kernel client WITHOUT paymaster — Pimlico bundler (CoFHE path)');
+    // No paymaster — smart account pays gas from its own balance.
+    // @zerodev/sdk (via viem account-abstraction) calls ZeroDev-only JSON-RPC (`zd_*`)
+    // on the bundler transport; use the ZeroDev bundler URL (not a generic bundler).
+    console.log('[ZeroDev] building kernel client WITHOUT paymaster — ZeroDev bundler');
     return createKernelAccountClient({
       account,
       chain,
-      bundlerTransport: http(pimlicoBundlerUrl),
+      bundlerTransport: http(zerodevRpcUrl),
     });
   }
 
