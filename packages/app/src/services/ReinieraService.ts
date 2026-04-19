@@ -64,7 +64,7 @@ class ReinieraService {
     );
     const vault = await this.sdk.escrow.create({
       amount: loanAmount,
-      owner: lenderAddress,
+      owner: workerAddress,
       resolver: CONTRACTS.lendiProofGate,
       resolverData,
     });

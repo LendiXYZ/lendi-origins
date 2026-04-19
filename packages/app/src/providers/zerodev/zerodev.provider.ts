@@ -1,4 +1,4 @@
-import type { IWalletProvider, Call } from '../wallet-provider.interface';
+import type { IWalletProvider, Call, GasOverride } from '../wallet-provider.interface';
 import { toWebAuthnKey, WebAuthnMode, type WebAuthnKey } from '@zerodev/webauthn-key';
 import { toPasskeyValidator, PasskeyValidatorContractVersion } from '@zerodev/passkey-validator';
 import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient, constants } from '@zerodev/sdk';
@@ -69,7 +69,7 @@ function buildPublicClient() {
   });
 }
 
-async function buildKernelClient(webAuthnKey: WebAuthnKey): Promise<KernelAccountClient> {
+async function buildKernelClient(webAuthnKey: WebAuthnKey, withPaymaster = true): Promise<KernelAccountClient> {
   const publicClient = buildPublicClient();
   const chain = getChain();
 
@@ -98,6 +98,27 @@ async function buildKernelClient(webAuthnKey: WebAuthnKey): Promise<KernelAccoun
 
   const zerodevRpcUrl = import.meta.env.VITE_ZERODEV_BUNDLER_URL;
 
+  if (!withPaymaster) {
+    // No paymaster — account pays its own gas via the bundler.
+    // ZeroDev's bundler requires paymaster for all UserOps (rejects with AA21 otherwise).
+    // Pimlico's bundler accepts self-funded UserOps and simulates against real Arbitrum
+    // Sepolia which has the CoFHE coprocessor, so FHE stored-ciphertext ops succeed.
+    const pimlicoKey = import.meta.env.VITE_PIMLICO_API_KEY;
+    if (!pimlicoKey) {
+      throw new Error(
+        'VITE_PIMLICO_API_KEY no configurada. ' +
+        'Obtén una key gratis en https://dashboard.pimlico.io y agrégala al .env'
+      );
+    }
+    const pimlicoBundlerUrl = `https://api.pimlico.io/v2/421614/rpc?apikey=${pimlicoKey}`;
+    console.log('[ZeroDev] building kernel client WITHOUT paymaster — Pimlico bundler (CoFHE path)');
+    return createKernelAccountClient({
+      account,
+      chain,
+      bundlerTransport: http(pimlicoBundlerUrl),
+    });
+  }
+
   const paymaster = createZeroDevPaymasterClient({
     chain,
     transport: http(zerodevRpcUrl),
@@ -113,6 +134,8 @@ async function buildKernelClient(webAuthnKey: WebAuthnKey): Promise<KernelAccoun
 
 export class ZeroDevProvider implements IWalletProvider {
   private kernelClient: KernelAccountClient | null = null;
+  private kernelClientNoPM: KernelAccountClient | null = null;
+  private kernelClientNoPMPromise: Promise<KernelAccountClient> | null = null;
   private webAuthnKeyRef: WebAuthnKey | null = null;
   private _address: string | null = null;
 
@@ -259,8 +282,22 @@ export class ZeroDevProvider implements IWalletProvider {
     return this._address;
   }
 
+  private async getKernelClientNoPM(): Promise<KernelAccountClient> {
+    if (this.kernelClientNoPM) return this.kernelClientNoPM;
+    if (!this.webAuthnKeyRef) throw new Error('Not connected');
+    if (this.kernelClientNoPMPromise) return this.kernelClientNoPMPromise;
+    this.kernelClientNoPMPromise = buildKernelClient(this.webAuthnKeyRef, false).then((client) => {
+      this.kernelClientNoPM = client;
+      this.kernelClientNoPMPromise = null;
+      return client;
+    });
+    return this.kernelClientNoPMPromise;
+  }
+
   async disconnect(): Promise<void> {
     this.kernelClient = null;
+    this.kernelClientNoPM = null;
+    this.kernelClientNoPMPromise = null;
     this.webAuthnKeyRef = null;
     this._address = null;
   }
@@ -298,9 +335,11 @@ export class ZeroDevProvider implements IWalletProvider {
     return this._address !== null && this.kernelClient !== null;
   }
 
-  async sendUserOperation(calls: Call[]): Promise<string> {
+  async sendUserOperation(calls: Call[], gasOverride?: GasOverride): Promise<string> {
     if (!this.kernelClient?.account) throw new Error('Not connected');
     await WindowHelper.ensureFocus();
+
+    const { skipPaymaster, ...gas } = gasOverride ?? {};
 
     const mappedCalls = calls.map((c) => ({
       to: c.to as Hex,
@@ -308,16 +347,23 @@ export class ZeroDevProvider implements IWalletProvider {
       value: c.value ?? 0n,
     }));
 
-    console.log('[ZeroDev] sendUserOperation — calls:', mappedCalls.length, 'sender:', this._address);
+    console.log('[ZeroDev] sendUserOperation — calls:', mappedCalls.length, 'sender:', this._address, 'skipPaymaster:', skipPaymaster);
 
-    const callData = await this.kernelClient.account.encodeCalls(mappedCalls);
+    let client: KernelAccountClient;
+    if (skipPaymaster) {
+      client = await this.getKernelClientNoPM();
+    } else {
+      client = this.kernelClient;
+    }
+
+    const callData = await client.account!.encodeCalls(mappedCalls);
 
     try {
       const userOpHash = await withPlatformAuthenticator(() =>
-        this.kernelClient!.sendUserOperation({ callData })
+        client.sendUserOperation({ callData, ...gas })
       );
       console.log('[ZeroDev] userOp sent — hash:', userOpHash);
-      const receipt = await this.kernelClient.waitForUserOperationReceipt({ hash: userOpHash });
+      const receipt = await client.waitForUserOperationReceipt({ hash: userOpHash });
       console.log('[ZeroDev] userOp confirmed — txHash:', receipt.receipt.transactionHash);
       return receipt.receipt.transactionHash;
     } catch (e) {

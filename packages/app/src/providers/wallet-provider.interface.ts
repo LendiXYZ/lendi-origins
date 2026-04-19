@@ -4,6 +4,16 @@ export interface Call {
   value?: bigint;
 }
 
+export interface GasOverride {
+  callGasLimit?: bigint;
+  verificationGasLimit?: bigint;
+  preVerificationGas?: bigint;
+  // When true, bypasses ZeroDev paymaster (account pays own gas).
+  // Required for CoFHE ops: paymaster simulation doesn't have the live coprocessor
+  // and overwrites callGasLimit with 0 when simulation fails.
+  skipPaymaster?: boolean;
+}
+
 export interface IWalletProvider {
   connect(): Promise<string>;
   disconnect(): Promise<void>;
@@ -11,5 +21,5 @@ export interface IWalletProvider {
   signTypedData(typedData: Record<string, unknown>): Promise<string>;
   getAddress(): string | null;
   isConnected(): boolean;
-  sendUserOperation(calls: Call[]): Promise<string>;
+  sendUserOperation(calls: Call[], gasOverride?: GasOverride): Promise<string>;
 }

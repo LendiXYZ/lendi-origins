@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { IWalletProvider } from '@/providers/wallet-provider.interface';
+import type { IWalletProvider, GasOverride } from '@/providers/wallet-provider.interface';
 import { ZeroDevProvider } from '@/providers/zerodev/zerodev.provider';
 
 export type WalletProviderType = 'zerodev';
@@ -18,7 +18,7 @@ interface WalletState {
   disconnect: () => Promise<void>;
   signMessage: (message: string) => Promise<string>;
   signTypedData: (typedData: Record<string, unknown>) => Promise<string>;
-  sendUserOperation: (calls: Array<{ to: string; data: string; value?: bigint }>) => Promise<string>;
+  sendUserOperation: (calls: Array<{ to: string; data: string; value?: bigint }>, gasOverride?: GasOverride) => Promise<string>;
   ensureConnected: () => Promise<void>;
 }
 
@@ -106,9 +106,9 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     return _provider.signTypedData(typedData);
   },
 
-  sendUserOperation: async (calls) => {
+  sendUserOperation: async (calls, gasOverride) => {
     await useWalletStore.getState().ensureConnected();
     if (!_provider) throw new Error('No wallet connected');
-    return _provider.sendUserOperation(calls);
+    return _provider.sendUserOperation(calls, gasOverride);
   },
 }));

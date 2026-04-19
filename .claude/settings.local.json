@@ -20,7 +20,8 @@
       "Bash(grep -n \"09ed9311\\\\|setOperator\\\\|isOperator\\\\|autoApprove\\\\|checkOrApprove\\\\|ApprovalRequired\" \"$\\(pnpm root -w\\)/@reineira-os/sdk/dist/index.mjs\")",
       "Bash(grep -r \"error\\\\|revert\\\\|0x09ed\" \"$\\(pnpm root -w\\)/cofhejs/dist/web.mjs\")",
       "Bash(grep -n \"mockEncrypt\\\\b\" \"$\\(pnpm root -w\\)/cofhejs/dist/web.mjs\")",
-      "Bash(grep -n \"mockZkVerifySign\\\\|mockConfig\\\\|mockVerifier\\\\|MOCK_VERIFIER\\\\|mockVerifierAddress\" \"$\\(pnpm root -w\\)/cofhejs/dist/web.mjs\")"
+      "Bash(grep -n \"mockZkVerifySign\\\\|mockConfig\\\\|mockVerifier\\\\|MOCK_VERIFIER\\\\|mockVerifierAddress\" \"$\\(pnpm root -w\\)/cofhejs/dist/web.mjs\")",
+      "mcp__reineira-docs__get_interfaces"
     ]
   }
 }

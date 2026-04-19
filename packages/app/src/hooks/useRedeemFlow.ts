@@ -200,9 +200,16 @@ export function useRedeemFlow() {
         functionName: 'redeemAndUnwrap',
         args: [escrowId, address as `0x${string}`],
       })
-      const hash = await useWalletStore.getState().sendUserOperation([
-        { to: CONTRACTS.escrow, data },
-      ])
+      // redeemAndUnwrap compares stored FHE ciphertexts (FHE.eq on-chain), requiring
+      // the live CoFHE coprocessor. ZeroDev's paymaster simulation doesn't have it:
+      // zd_sponsorUserOperation returns callGasLimit:0 and signs over that value, so
+      // gas overrides are impossible after the fact (paymaster signs over gas fields).
+      // skipPaymaster routes through a no-paymaster kernel client; only the bundler
+      // simulates, which uses the real Arbitrum Sepolia RPC that has CoFHE support.
+      const hash = await useWalletStore.getState().sendUserOperation(
+        [{ to: CONTRACTS.escrow, data }],
+        { callGasLimit: 3_000_000n, verificationGasLimit: 500_000n, preVerificationGas: 200_000n, skipPaymaster: true },
+      )
       setTxHash(hash)
       setStep('done')
       return hash
