@@ -39,7 +39,8 @@
     "anonymous": false,
     "inputs": [
       { "indexed": true,  "internalType": "address", "name": "worker",    "type": "address" },
-      { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" }
+      { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" },
+      { "indexed": true,  "internalType": "uint8",   "name": "source",    "type": "uint8"   }
     ],
     "name": "IncomeRecorded",
     "type": "event"
@@ -122,6 +123,27 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getMyMonthlyIncome",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getMyTxCount",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "worker", "type": "address" }],
+    "name": "getSealedMonthlyIncome",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
     "name": "lastResetTimestamp",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
@@ -168,7 +190,8 @@
         "internalType": "struct InEuint64",
         "name": "encAmount",
         "type": "tuple"
-      }
+      },
+      { "internalType": "uint8", "name": "source", "type": "uint8" }
     ],
     "name": "recordIncome",
     "outputs": [],

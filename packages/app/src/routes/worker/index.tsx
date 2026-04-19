@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { WorkerOnboarding } from '@/components/worker/WorkerOnboarding'
+import { BalanceView } from '@/components/worker/BalanceView'
 import { PrivacyNote } from '@/components/shared/PrivacyNote'
 import { strings } from '@/i18n'
 
@@ -15,6 +16,8 @@ export function WorkerDashboardPage() {
             {strings.worker.dashboard.subtitle}
           </p>
         </div>
+
+        <BalanceView />
 
         <PrivacyNote variant="block" />
 

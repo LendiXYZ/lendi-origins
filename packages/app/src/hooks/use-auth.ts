@@ -25,7 +25,7 @@ function buildSiweMessage(domain: string, address: string, statement: string, ur
  * NOT immediately after register/login (Windows Hello can't handle
  * two WebAuthn operations in quick succession).
  */
-async function authenticateWithSiwe(address: string) {
+export async function authenticateWithSiwe(address: string) {
   console.log('[auth] SIWE — requestNonce for', address);
   const { nonce } = await AuthService.requestNonce(address);
   console.log('[auth] SIWE — nonce received');
@@ -43,6 +43,16 @@ async function authenticateWithSiwe(address: string) {
   console.log('[auth] SIWE — JWT obtained');
 
   useAuthStore.getState().setTokens(tokenResponse.access_token, tokenResponse.refresh_token);
+}
+
+/**
+ * Standalone version — usable outside React components (e.g. HttpClient, services).
+ */
+export async function ensureJwt(): Promise<void> {
+  if (useAuthStore.getState().hasJwt()) return;
+  const address = useWalletStore.getState().address;
+  if (!address) throw new Error('Wallet no conectada');
+  await authenticateWithSiwe(address);
 }
 
 export function useAuth() {
@@ -67,11 +77,8 @@ export function useAuth() {
    * Ensures a valid JWT exists. If not, triggers SIWE (one WebAuthn prompt).
    * Call this before making backend API calls that require authentication.
    */
-  async function ensureJwt() {
-    if (useAuthStore.getState().hasJwt()) return;
-    const address = useWalletStore.getState().address;
-    if (!address) throw new Error('Wallet no conectada');
-    await authenticateWithSiwe(address);
+  async function ensureJwtHook() {
+    return ensureJwt();
   }
 
   async function logout() {
@@ -86,5 +93,5 @@ export function useAuth() {
     }
   }
 
-  return { login, register, logout, ensureJwt };
+  return { login, register, logout, ensureJwt: ensureJwtHook };
 }

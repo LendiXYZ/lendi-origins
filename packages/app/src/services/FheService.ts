@@ -128,9 +128,21 @@ class FheService {
         account: address as `0x${string}`,
         chain: arbitrumSepolia,
         transport: custom({
-          async request({ method }: { method: string }) {
+          async request({ method, params }: { method: string; params?: unknown[] }) {
             if (method === 'eth_accounts' || method === 'eth_requestAccounts') {
               return [address];
+            }
+            if (method === 'personal_sign') {
+              const { useWalletStore } = await import('@/stores/wallet-store');
+              if (!useWalletStore.getState().isConnected()) {
+                throw new Error('Wallet not connected — record income first to authorize viewing');
+              }
+              const hexMsg = (params?.[0] as string) ?? '';
+              const bytes = hexMsg.startsWith('0x')
+                ? new Uint8Array(hexMsg.slice(2).match(/.{1,2}/g)?.map((b) => parseInt(b, 16)) ?? [])
+                : new TextEncoder().encode(hexMsg);
+              const decoded = new TextDecoder().decode(bytes);
+              return useWalletStore.getState().signMessage(decoded);
             }
             throw new Error(`Unsupported method: ${method}`);
           },

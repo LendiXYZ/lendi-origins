@@ -29,8 +29,8 @@ async function reconnect(): Promise<void> {
 }
 
 export const useWalletStore = create<WalletState>((set, get) => ({
-  activeProviderType: null,
-  address: null,
+  activeProviderType: (localStorage.getItem('wallet_provider') as WalletProviderType) || null,
+  address: localStorage.getItem('wallet_address'),
   connecting: false,
   error: null,
 
