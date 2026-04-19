@@ -17,6 +17,7 @@ interface WalletState {
   register: (username: string) => Promise<string>;
   disconnect: () => Promise<void>;
   signMessage: (message: string) => Promise<string>;
+  signTypedData: (typedData: Record<string, unknown>) => Promise<string>;
   sendUserOperation: (calls: Array<{ to: string; data: string; value?: bigint }>) => Promise<string>;
   ensureConnected: () => Promise<void>;
 }
@@ -97,6 +98,12 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     await useWalletStore.getState().ensureConnected();
     if (!_provider) throw new Error('No wallet connected');
     return _provider.signMessage(message);
+  },
+
+  signTypedData: async (typedData) => {
+    await useWalletStore.getState().ensureConnected();
+    if (!_provider) throw new Error('No wallet connected');
+    return _provider.signTypedData(typedData);
   },
 
   sendUserOperation: async (calls) => {

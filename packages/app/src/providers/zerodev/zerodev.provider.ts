@@ -276,6 +276,20 @@ export class ZeroDevProvider implements IWalletProvider {
     );
   }
 
+  async signTypedData(typedData: Record<string, unknown>): Promise<string> {
+    if (!this.kernelClient?.account) throw new Error('Not connected');
+    await WindowHelper.ensureFocus();
+    return withPlatformAuthenticator(() =>
+      this.kernelClient!.signTypedData({
+        account: this.kernelClient!.account!,
+        domain: typedData.domain as any,
+        types: typedData.types as any,
+        primaryType: typedData.primaryType as string,
+        message: typedData.message as any,
+      })
+    );
+  }
+
   getAddress(): string | null {
     return this._address;
   }

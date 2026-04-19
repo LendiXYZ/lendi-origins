@@ -19,6 +19,8 @@ class FheService {
   private client: any = null;
   private initPromise: Promise<void> | null = null;
   private currentAddress: string | null = null;
+  private adapterPublicClient: any = null;
+  private adapterWalletClient: any = null;
 
   async initialize(walletAddress: string): Promise<void> {
     const normalized = walletAddress.toLowerCase();
@@ -89,15 +91,16 @@ class FheService {
   async unsealUint64(handle: bigint): Promise<number> {
     this.assertReady();
     const { FheTypes } = await import('@cofhe/sdk');
+    await this.client.permits.getOrCreateSelfPermit();
     const result = await this.client.decryptForView(handle, FheTypes.Uint64).execute();
-    return Number(result.decryptedValue) / 1_000_000;
+    return Number(result) / 1_000_000;
   }
 
   async unsealBool(handle: bigint): Promise<boolean> {
     this.assertReady();
     const { FheTypes } = await import('@cofhe/sdk');
     const result = await this.client.decryptForView(handle, FheTypes.Bool).execute();
-    return Boolean(result.decryptedValue);
+    return result as boolean;
   }
 
   isReady(): boolean {
@@ -134,15 +137,16 @@ class FheService {
             }
             if (method === 'personal_sign') {
               const { useWalletStore } = await import('@/stores/wallet-store');
-              if (!useWalletStore.getState().isConnected()) {
-                throw new Error('Wallet not connected — record income first to authorize viewing');
-              }
               const hexMsg = (params?.[0] as string) ?? '';
               const bytes = hexMsg.startsWith('0x')
                 ? new Uint8Array(hexMsg.slice(2).match(/.{1,2}/g)?.map((b) => parseInt(b, 16)) ?? [])
                 : new TextEncoder().encode(hexMsg);
-              const decoded = new TextDecoder().decode(bytes);
-              return useWalletStore.getState().signMessage(decoded);
+              return useWalletStore.getState().signMessage(new TextDecoder().decode(bytes));
+            }
+            if (method === 'eth_signTypedData_v4') {
+              const { useWalletStore } = await import('@/stores/wallet-store');
+              const typedData = JSON.parse((params?.[1] as string) ?? '{}');
+              return useWalletStore.getState().signTypedData(typedData);
             }
             throw new Error(`Unsupported method: ${method}`);
           },
@@ -158,10 +162,14 @@ class FheService {
       const { publicClient, walletClient } = await WagmiAdapter(viemWalletClient, viemPublicClient);
       await this.client.connect(publicClient, walletClient);
 
+      this.adapterPublicClient = publicClient;
+      this.adapterWalletClient = walletClient;
       this.currentAddress = address;
     } catch (error: any) {
       this.client = null;
       this.initPromise = null;
+      this.adapterPublicClient = null;
+      this.adapterWalletClient = null;
       const message = error?.message || error?.toString() || 'Unknown error';
       throw new Error(`FHE initialization failed: ${message}`);
     }
