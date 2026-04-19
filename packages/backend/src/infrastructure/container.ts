@@ -1,5 +1,4 @@
 import {
-  MemoryUserRepository,
   MemoryEscrowRepository,
   MemoryWithdrawalRepository,
   MemoryBusinessProfileRepository,
@@ -10,7 +9,11 @@ import {
   MemoryIncomeEventRepository,
   MemoryLoanRepository,
 } from './repository/memory/index.js';
-import { VercelKvNonceRepository, VercelKvSessionRepository } from './repository/vercel-kv/index.js';
+import {
+  VercelKvNonceRepository,
+  VercelKvSessionRepository,
+  VercelKvUserRepository,
+} from './repository/vercel-kv/index.js';
 import { JwtService } from './auth/jwt.service.js';
 import { NonceService } from './auth/nonce.service.js';
 import { SiweVerifier } from './auth/siwe-verifier.js';
@@ -19,7 +22,7 @@ import { QuickNodeVerifier } from './webhook/quicknode-verifier.js';
 import { getEnv } from '../core/config.js';
 
 const nonceRepo = new VercelKvNonceRepository();
-const userRepo = new MemoryUserRepository();
+const userRepo = new VercelKvUserRepository();
 const sessionRepo = new VercelKvSessionRepository();
 const escrowRepo = new MemoryEscrowRepository();
 const withdrawalRepo = new MemoryWithdrawalRepository();
