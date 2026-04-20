@@ -11,8 +11,9 @@ import { ethers } from 'ethers';
  */
 
 const RPC_URL = 'https://sepolia-rollup.arbitrum.io/rpc';
-const LENDI_PROOF_ADDRESS = '0x06b0523e63FF904d622aa6d125FdEe11201Bf791'; // LendiProof
-const LENDI_PROOF_GATE_ADDRESS = '0x68AE6d292553C0fBa8e797c0056Efe56038227A1'; // LendiProofGate
+const LENDI_PROOF_ADDRESS = '0x0f9c2e1fb84DB0afb9e830C93D847C8F817C41ac'; // LendiProof (tiene registerLender + transferFrom)
+const LENDI_PROOF_GATE_ADDRESS = '0x06b0523e63FF904d622aa6d125FdEe11201Bf791'; // LendiProofGate
+const LENDI_POLICY_ADDRESS = '0x68AE6d292553C0fBa8e797c0056Efe56038227A1'; // LendiPolicy (NO maneja USDC)
 const USDC_ADDRESS = '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d';
 
 // ABI mínimas necesarias
@@ -61,15 +62,16 @@ async function debugAATransaction(smartAccountAddress: string) {
     console.log('   ⚠️  WARNING: No USDC balance');
   }
 
-  // 3. Verificar allowance de USDC para LendiProofGate
-  console.log('\n3️⃣  Checking USDC allowance for LendiProofGate...');
-  const allowance = await usdc.allowance(smartAccountAddress, LENDI_PROOF_GATE_ADDRESS);
+  // 3. Verificar allowance de USDC para LendiProof (que es quien cobra el fee)
+  console.log('\n3️⃣  Checking USDC allowance for LendiProof (registerLender fee)...');
+  const allowance = await usdc.allowance(smartAccountAddress, LENDI_PROOF_ADDRESS);
   console.log(`   Allowance: ${ethers.formatUnits(allowance, decimals)} USDC`);
   if (allowance === 0n) {
-    console.log('   ❌ NO ALLOWANCE: Must approve USDC first!');
-    console.log(`   → Run: usdc.approve("${LENDI_PROOF_GATE_ADDRESS}", amount)`);
+    console.log('   ❌ NO ALLOWANCE: Must approve USDC to LendiProof first!');
+    console.log(`   → Run: usdc.approve("${LENDI_PROOF_ADDRESS}", amount)`);
+    console.log(`   → LendiProof.registerLender() requires 1 USDC via transferFrom()`);
   } else {
-    console.log('   ✅ USDC is approved');
+    console.log('   ✅ USDC is approved for LendiProof');
   }
 
   // 4. Verificar si el worker está registrado

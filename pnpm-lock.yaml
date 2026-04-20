@@ -181,6 +181,9 @@ importers:
       drizzle-kit:
         specifier: ^0.30
         version: 0.30.6
+      fhenixjs:
+        specifier: ^0.4.1
+        version: 0.4.1
       tsup:
         specifier: ^8
         version: 8.5.1(jiti@2.6.1)(postcss@8.5.9)(tsx@4.21.0)(typescript@5.9.3)
@@ -3561,6 +3564,10 @@ packages:
     peerDependenciesMeta:
       picomatch:
         optional: true
+
+  fhenixjs@0.4.1:
+    resolution: {integrity: sha512-q+IgMHFhTrXpsdrDox67Qw4InffCPYiNnXpn8cUThmfKMLGOhVzp4TgMc4xG5yajVroIw+Fle1C8SJILxG+BVQ==}
+    engines: {node: '>=20.0.0'}
 
   figures@2.0.0:
     resolution: {integrity: sha512-Oa2M9atig69ZkfwiApY8F2Yy+tzMbazyvqv21R0NsSC8floSOC09BbT1ITWAdoMGQvJ/aZnR1KMwdx9tvHnTNA==}
@@ -8339,7 +8346,7 @@ snapshots:
 
   '@types/pg@8.20.0':
     dependencies:
-      '@types/node': 22.19.17
+      '@types/node': 25.6.0
       pg-protocol: 1.13.0
       pg-types: 2.2.0
 
@@ -9705,6 +9712,12 @@ snapshots:
   fdir@6.5.0(picomatch@4.0.4):
     optionalDependencies:
       picomatch: 4.0.4
+
+  fhenixjs@0.4.1:
+    dependencies:
+      '@types/node': 20.19.39
+      tweetnacl: 1.0.3
+      tweetnacl-util: 0.15.1
 
   figures@2.0.0:
     dependencies:
