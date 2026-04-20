@@ -18,7 +18,8 @@ export function VerifyIncome() {
   const [isLender, setIsLender] = useState<boolean | null>(null)
   const [registering, setRegistering] = useState(false)
 
-  const { proveIncome, isLenderRegistered, registerLender, fheInitializing } = useLendiProof()
+  const { proveIncome, isLenderRegistered, registerLender, lenderRegistrationStep, fheInitializing } =
+    useLendiProof()
   const { unsealBool, initialize: initFhe } = useCofhe()
 
   useEffect(() => {
@@ -87,7 +88,11 @@ export function VerifyIncome() {
           <p className="text-xs text-[var(--status-error)]">{errorMsg}</p>
         )}
         <Button onClick={handleRegister} loading={registering} disabled={registering}>
-          Registrarme como Prestamista
+          {registering && lenderRegistrationStep === 'approving'
+            ? 'Paso 1/2: aprobando USDC…'
+            : registering && lenderRegistrationStep === 'registering'
+              ? 'Paso 2/2: registrando prestamista…'
+              : 'Registrarme como Prestamista'}
         </Button>
       </div>
     )

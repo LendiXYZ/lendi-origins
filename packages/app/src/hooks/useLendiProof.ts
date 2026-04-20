@@ -1,5 +1,5 @@
-import { useCallback } from 'react'
-import { type Abi, encodeFunctionData } from 'viem'
+import { useCallback, useState } from 'react'
+import { type Abi, encodeFunctionData, maxUint256 } from 'viem'
 import { useContractCall } from '@/hooks/use-contract-call'
 import { useCofhe } from '@/hooks/useCofhe'
 import { useWalletStore } from '@/stores/wallet-store'
@@ -18,12 +18,25 @@ const ERC20_ABI = [
     outputs: [{ name: '', type: 'bool' }],
     stateMutability: 'nonpayable',
   },
+  {
+    name: 'allowance',
+    type: 'function',
+    inputs: [
+      { name: 'owner', type: 'address' },
+      { name: 'spender', type: 'address' },
+    ],
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+  },
 ] as const
+
+export type LenderRegistrationStep = 'idle' | 'approving' | 'registering'
 
 export function useLendiProof() {
   const address = useWalletStore((s) => s.address)
   const { executeCall, loading: txLoading, error: txError } = useContractCall()
   const { encryptIncome, unsealIncome, initialized, initializing, error: fheError } = useCofhe()
+  const [lenderRegistrationStep, setLenderRegistrationStep] = useState<LenderRegistrationStep>('idle')
 
   const registerWorker = useCallback(async () => {
     return executeCall(CONTRACTS.lendiProof, ABI, 'registerWorker', [])
@@ -45,24 +58,44 @@ export function useLendiProof() {
   )
 
   const registerLender = useCallback(async () => {
-    const fee = await publicClient.readContract({
+    const wallet = useWalletStore.getState()
+    const owner = wallet.address as `0x${string}` | null
+    if (!owner) throw new Error('Wallet no conectada')
+
+    const fee = (await publicClient.readContract({
       address: CONTRACTS.lendiProof,
       abi: ABI,
       functionName: 'LENDER_REGISTRATION_FEE',
-    }) as bigint
+    })) as bigint
 
-    const approveData = encodeFunctionData({
+    // LendiProof.registerLender pulls USDC via transferFrom(msg.sender, …).
+    // Two separate UserOps (approve, then register) match ERC-4337 / bundler behavior
+    // better than a single batched call when simulation or paymaster is strict.
+    const allowance = (await publicClient.readContract({
+      address: CONTRACTS.usdc,
       abi: ERC20_ABI,
-      functionName: 'approve',
-      args: [CONTRACTS.lendiProof, fee],
-    })
-    const registerData = encodeFunctionData({ abi: ABI, functionName: 'registerLender', args: [] })
+      functionName: 'allowance',
+      args: [owner, CONTRACTS.lendiProof],
+    })) as bigint
 
-    return useWalletStore.getState().sendUserOperation([
-      { to: CONTRACTS.usdc, data: approveData },
-      { to: CONTRACTS.lendiProof, data: registerData },
-    ])
-  }, [executeCall])
+    try {
+      if (allowance < fee) {
+        setLenderRegistrationStep('approving')
+        const approveData = encodeFunctionData({
+          abi: ERC20_ABI,
+          functionName: 'approve',
+          args: [CONTRACTS.lendiProof, maxUint256],
+        })
+        await wallet.sendUserOperation([{ to: CONTRACTS.usdc, data: approveData }])
+      }
+
+      setLenderRegistrationStep('registering')
+      const registerData = encodeFunctionData({ abi: ABI, functionName: 'registerLender', args: [] })
+      return await wallet.sendUserOperation([{ to: CONTRACTS.lendiProof, data: registerData }])
+    } finally {
+      setLenderRegistrationStep('idle')
+    }
+  }, [])
 
   const isWorkerRegistered = useCallback(
     async (addr?: string): Promise<boolean> => {
@@ -133,6 +166,7 @@ export function useLendiProof() {
     registerWorker,
     isWorkerRegistered,
     registerLender,
+    lenderRegistrationStep,
     isLenderRegistered,
     recordIncome,
     getMyMonthlyIncome,
