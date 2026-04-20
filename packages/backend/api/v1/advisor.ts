@@ -15,7 +15,7 @@ const postHandler = createHandler({
     const workerAddress = dto.workerAddress.toLowerCase();
 
     // Verify worker is requesting advice for themselves
-    const authenticatedAddress = authReq.authPayload?.address?.toLowerCase();
+    const authenticatedAddress = authReq.authPayload?.walletAddress?.toLowerCase();
     if (authenticatedAddress !== workerAddress) {
       return Response.forbidden('You can only request advice for your own address');
     }

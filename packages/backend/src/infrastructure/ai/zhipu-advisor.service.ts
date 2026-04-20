@@ -1,4 +1,5 @@
-import type { AdvisorRequestDto, AdvisorResponseDto } from '../../application/dto/advisor/advisor-response.dto';
+import type { AdvisorRequestDto } from '../../application/dto/advisor/advisor-request.dto';
+import type { AdvisorResponseDto } from '../../application/dto/advisor/advisor-response.dto';
 
 /**
  * Zhipu AI (Z.AI) Advisor Service
