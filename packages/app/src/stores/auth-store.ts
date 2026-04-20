@@ -6,6 +6,7 @@ interface AuthState {
   walletAddress: string | null;
   walletProvider: string | null;
   isAuthorized: () => boolean;
+  hasJwt: () => boolean;
   setTokens: (access: string, refresh: string) => void;
   setWallet: (address: string, provider: string) => void;
   logout: () => void;
@@ -17,7 +18,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   walletAddress: localStorage.getItem('wallet_address'),
   walletProvider: localStorage.getItem('wallet_provider'),
 
-  isAuthorized: () => !!get().accessToken,
+  isAuthorized: () => !!get().walletAddress,
+  hasJwt: () => !!get().accessToken,
 
   setTokens: (access, refresh) => {
     localStorage.setItem('access_token', access);

@@ -19,6 +19,8 @@ class FheService {
   private client: any = null;
   private initPromise: Promise<void> | null = null;
   private currentAddress: string | null = null;
+  private adapterPublicClient: any = null;
+  private adapterWalletClient: any = null;
 
   async initialize(walletAddress: string): Promise<void> {
     const normalized = walletAddress.toLowerCase();
@@ -86,6 +88,32 @@ class FheService {
     return (result as EncryptedInput[]).map((enc) => this.formatResult(enc));
   }
 
+  async unsealUint64(handle: bigint): Promise<number> {
+    this.assertReady();
+    const { FheTypes } = await import('@cofhe/sdk');
+    await this.client.permits.getOrCreateSelfPermit();
+    const result = await this.client.decryptForView(handle, FheTypes.Uint64).execute();
+    return Number(result) / 1_000_000;
+  }
+
+  async unsealBool(handle: bigint): Promise<boolean> {
+    this.assertReady();
+    const { FheTypes } = await import('@cofhe/sdk');
+    await this.client.permits.getOrCreateSelfPermit();
+    const result = await this.client.decryptForView(handle, FheTypes.Bool).execute();
+    return result as boolean;
+  }
+
+  async decryptBoolForTx(handle: bigint): Promise<{ value: boolean; signature: `0x${string}` }> {
+    this.assertReady();
+    // withoutPermit() uses global allowance — valid after FHE.allowPublic was called on-chain
+    const result = await this.client.decryptForTx(handle).withoutPermit().execute();
+    return {
+      value: result.decryptedValue !== 0n,
+      signature: result.signature,
+    };
+  }
+
   isReady(): boolean {
     return this.client !== null;
   }
@@ -114,9 +142,31 @@ class FheService {
         account: address as `0x${string}`,
         chain: arbitrumSepolia,
         transport: custom({
-          async request({ method }: { method: string }) {
+          async request({ method, params }: { method: string; params?: unknown[] }) {
             if (method === 'eth_accounts' || method === 'eth_requestAccounts') {
               return [address];
+            }
+            if (method === 'personal_sign') {
+              const { useWalletStore } = await import('@/stores/wallet-store');
+              const hexMsg = (params?.[0] as string) ?? '';
+              const bytes = hexMsg.startsWith('0x')
+                ? new Uint8Array(hexMsg.slice(2).match(/.{1,2}/g)?.map((b) => parseInt(b, 16)) ?? [])
+                : new TextEncoder().encode(hexMsg);
+              return useWalletStore.getState().signMessage(new TextDecoder().decode(bytes));
+            }
+            if (method === 'eth_signTypedData_v4') {
+              const { useWalletStore } = await import('@/stores/wallet-store');
+              const typedData = JSON.parse((params?.[1] as string) ?? '{}');
+              return useWalletStore.getState().signTypedData(typedData);
+            }
+            if (method === 'eth_sendTransaction') {
+              const { useWalletStore } = await import('@/stores/wallet-store');
+              const tx = (params?.[0] as { to: string; data?: string; value?: string }) ?? {};
+              return useWalletStore.getState().sendUserOperation([{
+                to: tx.to,
+                data: tx.data ?? '0x',
+                value: tx.value ? BigInt(tx.value) : undefined,
+              }]);
             }
             throw new Error(`Unsupported method: ${method}`);
           },
@@ -132,10 +182,14 @@ class FheService {
       const { publicClient, walletClient } = await WagmiAdapter(viemWalletClient, viemPublicClient);
       await this.client.connect(publicClient, walletClient);
 
+      this.adapterPublicClient = publicClient;
+      this.adapterWalletClient = walletClient;
       this.currentAddress = address;
     } catch (error: any) {
       this.client = null;
       this.initPromise = null;
+      this.adapterPublicClient = null;
+      this.adapterWalletClient = null;
       const message = error?.message || error?.toString() || 'Unknown error';
       throw new Error(`FHE initialization failed: ${message}`);
     }

@@ -1,78 +1,137 @@
-import { createRootRoute, createRoute, Outlet, redirect } from '@tanstack/react-router';
-import { useAuthStore } from '@/stores/auth-store';
-import { AppLayout } from '@/components/layout/app-layout';
-import { WalletAuthPage } from '@/routes/index';
-import { DashboardPage } from '@/routes/_authenticated/dashboard';
-import { WorkersPage } from '@/routes/_authenticated/workers';
-import { LendersPage } from '@/routes/_authenticated/lenders';
-import { LoansPage } from '@/routes/_authenticated/loans';
-import { ProfilePage } from '@/routes/_authenticated/profile';
+import { createRootRoute, createRoute, Outlet, redirect } from '@tanstack/react-router'
+import { useAuthStore } from '@/stores/auth-store'
+import { AppLayout } from '@/components/layout/app-layout'
+import { RootLayout } from '@/routes/__root'
+import { RolePickerPage } from '@/routes/index'
+import { WorkerDashboardPage } from '@/routes/worker/index'
+import { WorkerIncomePage } from '@/routes/worker/income'
+import { WorkerApplyPage } from '@/routes/worker/apply'
+import { WorkerLoansPage } from '@/routes/worker/loans'
+import { WorkerAdvisorPage } from '@/routes/worker/advisor'
+import { LenderDashboardPage } from '@/routes/lender/index'
+import { LenderVerifyPage } from '@/routes/lender/verify'
+import { LenderPortfolioPage } from '@/routes/lender/portfolio'
 
-const rootRoute = createRootRoute({
-  component: Outlet,
-});
+// ─── Root ────────────────────────────────────────────────────────────────────
+
+const rootRoute = createRootRoute({ component: RootLayout })
+
+// ─── Index (role picker / wallet connect) ────────────────────────────────────
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: WalletAuthPage,
-});
+  component: RolePickerPage,
+})
 
-function AuthenticatedLayout() {
+// ─── Auth guard ──────────────────────────────────────────────────────────────
+
+function requireAuth() {
+  if (!useAuthStore.getState().isAuthorized()) {
+    throw redirect({ to: '/' })
+  }
+}
+
+// ─── Worker layout (pathless, auth-guarded) ───────────────────────────────────
+
+function WorkerLayout() {
   return (
     <AppLayout>
       <Outlet />
     </AppLayout>
-  );
+  )
 }
 
-const authenticatedRoute = createRoute({
+const workerLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
-  id: 'authenticated',
-  beforeLoad: () => {
-    if (!useAuthStore.getState().isAuthorized()) {
-      throw redirect({ to: '/' });
-    }
-  },
-  component: AuthenticatedLayout,
-});
+  id: 'worker-layout',
+  beforeLoad: requireAuth,
+  component: WorkerLayout,
+})
 
-const dashboardRoute = createRoute({
-  getParentRoute: () => authenticatedRoute,
-  path: '/dashboard',
-  component: DashboardPage,
-});
+const workerIndexRoute = createRoute({
+  getParentRoute: () => workerLayoutRoute,
+  path: '/worker',
+  component: WorkerDashboardPage,
+})
 
-const workersRoute = createRoute({
-  getParentRoute: () => authenticatedRoute,
-  path: '/workers',
-  component: WorkersPage,
-});
+const workerIncomeRoute = createRoute({
+  getParentRoute: () => workerLayoutRoute,
+  path: '/worker/income',
+  component: WorkerIncomePage,
+})
 
-const lendersRoute = createRoute({
-  getParentRoute: () => authenticatedRoute,
-  path: '/lenders',
-  component: LendersPage,
-});
+const workerApplyRoute = createRoute({
+  getParentRoute: () => workerLayoutRoute,
+  path: '/worker/apply',
+  component: WorkerApplyPage,
+})
 
-const loansRoute = createRoute({
-  getParentRoute: () => authenticatedRoute,
-  path: '/loans',
-  component: LoansPage,
-});
+const workerLoansRoute = createRoute({
+  getParentRoute: () => workerLayoutRoute,
+  path: '/worker/loans',
+  component: WorkerLoansPage,
+})
 
-const profileRoute = createRoute({
-  getParentRoute: () => authenticatedRoute,
-  path: '/profile',
-  component: ProfilePage,
-});
+const workerAdvisorRoute = createRoute({
+  getParentRoute: () => workerLayoutRoute,
+  path: '/worker/advisor',
+  component: WorkerAdvisorPage,
+})
 
-const authenticatedTree = authenticatedRoute.addChildren([
-  dashboardRoute,
-  workersRoute,
-  lendersRoute,
-  loansRoute,
-  profileRoute,
-]);
+// ─── Lender layout (pathless, auth-guarded) ───────────────────────────────────
 
-export const routeTree = rootRoute.addChildren([indexRoute, authenticatedTree]);
+function LenderLayout() {
+  return (
+    <AppLayout>
+      <Outlet />
+    </AppLayout>
+  )
+}
+
+const lenderLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: 'lender-layout',
+  beforeLoad: requireAuth,
+  component: LenderLayout,
+})
+
+const lenderIndexRoute = createRoute({
+  getParentRoute: () => lenderLayoutRoute,
+  path: '/lender',
+  component: LenderDashboardPage,
+})
+
+const lenderVerifyRoute = createRoute({
+  getParentRoute: () => lenderLayoutRoute,
+  path: '/lender/verify',
+  component: LenderVerifyPage,
+})
+
+const lenderPortfolioRoute = createRoute({
+  getParentRoute: () => lenderLayoutRoute,
+  path: '/lender/portfolio',
+  component: LenderPortfolioPage,
+})
+
+// ─── Tree ────────────────────────────────────────────────────────────────────
+
+const workerTree = workerLayoutRoute.addChildren([
+  workerIndexRoute,
+  workerIncomeRoute,
+  workerApplyRoute,
+  workerLoansRoute,
+  workerAdvisorRoute,
+])
+
+const lenderTree = lenderLayoutRoute.addChildren([
+  lenderIndexRoute,
+  lenderVerifyRoute,
+  lenderPortfolioRoute,
+])
+
+export const routeTree = rootRoute.addChildren([
+  indexRoute,
+  workerTree,
+  lenderTree,
+])

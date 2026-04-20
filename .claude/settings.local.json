@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install:*)",
+      "Bash(pnpm --filter @lendi/app lint)",
+      "Bash(node:*)",
+      "Bash(pnpm --filter @lendi/app build)",
+      "WebFetch(domain:docs.zerodev.app)",
+      "Bash(xargs grep *)",
+      "Bash(pnpm --filter @lendi/app exec tsc --noEmit)",
+      "Bash(pnpm --filter @lendi/app add @reineira-os/sdk)",
+      "mcp__reineira-docs__get_docs",
+      "mcp__reineira-docs__get_contracts",
+      "mcp__reineira-docs__search_docs",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm root *)",
+      "Bash(ls \"$\\(pnpm root -w\\)/cofhejs/\")",
+      "Bash(ls \"$\\(pnpm root -w\\)/cofhejs/dist/\")",
+      "Bash(grep -n \"09ed9311\\\\|EscrowDoesNotExist\\\\|NotOperator\\\\|InvalidProof\\\\|asEuint\\\\|FHEMeta\" \"$\\(pnpm root -w\\)/@reineira-os/sdk/dist/index.mjs\")",
+      "Bash(grep -n \"09ed9311\\\\|setOperator\\\\|isOperator\\\\|autoApprove\\\\|checkOrApprove\\\\|ApprovalRequired\" \"$\\(pnpm root -w\\)/@reineira-os/sdk/dist/index.mjs\")",
+      "Bash(grep -r \"error\\\\|revert\\\\|0x09ed\" \"$\\(pnpm root -w\\)/cofhejs/dist/web.mjs\")",
+      "Bash(grep -n \"mockEncrypt\\\\b\" \"$\\(pnpm root -w\\)/cofhejs/dist/web.mjs\")",
+      "Bash(grep -n \"mockZkVerifySign\\\\|mockConfig\\\\|mockVerifier\\\\|MOCK_VERIFIER\\\\|mockVerifierAddress\" \"$\\(pnpm root -w\\)/cofhejs/dist/web.mjs\")",
+      "mcp__reineira-docs__get_interfaces"
+    ]
+  }
+}

@@ -1,9 +1,8 @@
 {
-  "installCommand": "npm install -g pnpm@10.30.3 && cd ../.. && npx pnpm@10.30.3 install --frozen-lockfile",
-  "buildCommand": "cd ../.. && npx pnpm@10.30.3 --filter @lendi/backend run build",
-  "outputDirectory": "dist",
+  "installCommand": "npm install -g pnpm@10.30.3 && npx pnpm@10.30.3 install --frozen-lockfile",
+  "buildCommand": "npx pnpm@10.30.3 --filter @lendi/backend run build",
+  "outputDirectory": "packages/backend/dist",
   "framework": null,
-  "rewrites": [{ "source": "/api/(.*)", "destination": "/api/$1" }],
   "headers": [
     {
       "source": "/api/(.*)",

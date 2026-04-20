@@ -24,4 +24,19 @@ export class WorkerService {
     const { data } = await httpClient.get<WorkerResponse>(`/v1/workers/${id}`);
     return data;
   }
+
+  static async getByWallet(walletAddress: string): Promise<WorkerResponse | null> {
+    const workers = await WorkerService.list();
+    return (
+      workers.find(
+        (w) => w.wallet_address.toLowerCase() === walletAddress.toLowerCase(),
+      ) ?? null
+    );
+  }
+
+  static async getOrCreate(walletAddress: string): Promise<WorkerResponse> {
+    const existing = await WorkerService.getByWallet(walletAddress);
+    if (existing) return existing;
+    return WorkerService.create(walletAddress);
+  }
 }

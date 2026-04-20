@@ -18,19 +18,41 @@ function buildSiweMessage(domain: string, address: string, statement: string, ur
   ].join('\n');
 }
 
-async function authenticateWithSiwe(address: string) {
+/**
+ * Performs SIWE to obtain a JWT from the backend.
+ * Triggers a WebAuthn prompt (Windows Hello PIN).
+ * Call this ONLY when a JWT is actually needed for an API call,
+ * NOT immediately after register/login (Windows Hello can't handle
+ * two WebAuthn operations in quick succession).
+ */
+export async function authenticateWithSiwe(address: string) {
+  console.log('[auth] SIWE — requestNonce for', address);
   const { nonce } = await AuthService.requestNonce(address);
+  console.log('[auth] SIWE — nonce received');
 
   const domain = window.location.host;
   const origin = window.location.origin;
-  const statement = 'Sign in to ReineiraOS';
+  const statement = 'Sign in with Ethereum to Lendi';
   const message = buildSiweMessage(domain, address, statement, origin, nonce);
 
+  console.log('[auth] SIWE — signing message (will prompt passkey)');
   const signature = await useWalletStore.getState().signMessage(message);
+  console.log('[auth] SIWE — signed, verifying with backend...');
+
   const tokenResponse = await AuthService.verifyWallet(address, message, signature);
+  console.log('[auth] SIWE — JWT obtained');
 
   useAuthStore.getState().setTokens(tokenResponse.access_token, tokenResponse.refresh_token);
-  useAuthStore.getState().setWallet(address, 'zerodev');
+}
+
+/**
+ * Standalone version — usable outside React components (e.g. HttpClient, services).
+ */
+export async function ensureJwt(): Promise<void> {
+  if (useAuthStore.getState().hasJwt()) return;
+  const address = useWalletStore.getState().address;
+  if (!address) throw new Error('Wallet no conectada');
+  await authenticateWithSiwe(address);
 }
 
 export function useAuth() {
@@ -41,17 +63,29 @@ export function useAuth() {
 
   async function login() {
     const address = await walletConnect('zerodev');
-    await authenticateWithSiwe(address);
+    useAuthStore.getState().setWallet(address, 'zerodev');
+    console.log('[auth] login OK — address:', address);
   }
 
   async function register(username: string) {
     const address = await walletRegister(username);
-    await authenticateWithSiwe(address);
+    useAuthStore.getState().setWallet(address, 'zerodev');
+    console.log('[auth] register OK — address:', address);
+  }
+
+  /**
+   * Ensures a valid JWT exists. If not, triggers SIWE (one WebAuthn prompt).
+   * Call this before making backend API calls that require authentication.
+   */
+  async function ensureJwtHook() {
+    return ensureJwt();
   }
 
   async function logout() {
     try {
-      await AuthService.logout();
+      if (useAuthStore.getState().hasJwt()) {
+        await AuthService.logout();
+      }
     } catch {
     } finally {
       authLogout();
@@ -59,5 +93,5 @@ export function useAuth() {
     }
   }
 
-  return { login, register, logout };
+  return { login, register, logout, ensureJwt: ensureJwtHook };
 }

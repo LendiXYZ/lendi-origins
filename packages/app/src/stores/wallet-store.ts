@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { IWalletProvider } from '@/providers/wallet-provider.interface';
+import type { IWalletProvider, GasOverride } from '@/providers/wallet-provider.interface';
 import { ZeroDevProvider } from '@/providers/zerodev/zerodev.provider';
 
 export type WalletProviderType = 'zerodev';
@@ -17,7 +17,8 @@ interface WalletState {
   register: (username: string) => Promise<string>;
   disconnect: () => Promise<void>;
   signMessage: (message: string) => Promise<string>;
-  sendUserOperation: (calls: Array<{ to: string; data: string; value?: bigint }>) => Promise<string>;
+  signTypedData: (typedData: Record<string, unknown>) => Promise<string>;
+  sendUserOperation: (calls: Array<{ to: string; data: string; value?: bigint }>, gasOverride?: GasOverride) => Promise<string>;
   ensureConnected: () => Promise<void>;
 }
 
@@ -29,8 +30,8 @@ async function reconnect(): Promise<void> {
 }
 
 export const useWalletStore = create<WalletState>((set, get) => ({
-  activeProviderType: null,
-  address: null,
+  activeProviderType: (localStorage.getItem('wallet_provider') as WalletProviderType) || null,
+  address: localStorage.getItem('wallet_address'),
   connecting: false,
   error: null,
 
@@ -38,6 +39,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   ensureConnected: async () => {
     if (_provider) return;
+    console.warn('[wallet-store] ensureConnected: _provider is null — triggering reconnect (will prompt WebAuthn)');
     if (_reconnectPromise) {
       await _reconnectPromise;
       return;
@@ -98,9 +100,15 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     return _provider.signMessage(message);
   },
 
-  sendUserOperation: async (calls) => {
+  signTypedData: async (typedData) => {
     await useWalletStore.getState().ensureConnected();
     if (!_provider) throw new Error('No wallet connected');
-    return _provider.sendUserOperation(calls);
+    return _provider.signTypedData(typedData);
+  },
+
+  sendUserOperation: async (calls, gasOverride) => {
+    await useWalletStore.getState().ensureConnected();
+    if (!_provider) throw new Error('No wallet connected');
+    return _provider.sendUserOperation(calls, gasOverride);
   },
 }));
