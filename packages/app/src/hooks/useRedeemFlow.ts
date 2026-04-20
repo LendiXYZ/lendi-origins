@@ -73,6 +73,7 @@ export function useRedeemFlow() {
   const [conditionStatus, setConditionStatus] = useState<ConditionStatus>('unknown')
 
   const checkCondition = useCallback(async (escrowId: bigint): Promise<ConditionStatus> => {
+    console.log(`[RedeemFlow] checkCondition — escrowId=${escrowId} gate=${CONTRACTS.lendiProofGate}`)
     setStep('checking')
     setError(null)
     try {
@@ -83,6 +84,7 @@ export function useRedeemFlow() {
         args: [escrowId],
       }) as boolean
       const status: ConditionStatus = met ? 'met' : 'not_met'
+      console.log(`[RedeemFlow] checkCondition OK — met=${met} → status=${status}`)
       setConditionStatus(status)
       setStep('idle')
       return status
@@ -94,6 +96,8 @@ export function useRedeemFlow() {
         revertError?.name ??
         ''
       const rawMsg: string = e?.message ?? e?.toString() ?? ''
+
+      console.warn(`[RedeemFlow] checkCondition REVERT — errorName="${errorName}" msg="${rawMsg}"`)
 
       let status: ConditionStatus
       if (
@@ -112,6 +116,7 @@ export function useRedeemFlow() {
         setError(rawMsg)
         status = 'unknown'
       }
+      console.log(`[RedeemFlow] checkCondition → status=${status}`)
       setConditionStatus(status)
       setStep('idle')
       return status
@@ -119,6 +124,7 @@ export function useRedeemFlow() {
   }, [])
 
   const requestVerification = useCallback(async (escrowId: bigint): Promise<string> => {
+    console.log(`[RedeemFlow] requestVerification — escrowId=${escrowId}`)
     setStep('requesting')
     setError(null)
     try {
@@ -130,12 +136,14 @@ export function useRedeemFlow() {
       const hash = await useWalletStore.getState().sendUserOperation([
         { to: CONTRACTS.lendiProofGate, data },
       ])
+      console.log(`[RedeemFlow] requestVerification OK — txHash=${hash}`)
       setTxHash(hash)
       setConditionStatus('pending_publish')
       setStep('idle')
       return hash
     } catch (e: any) {
       const msg = e?.message ?? 'Error solicitando verificación'
+      console.error(`[RedeemFlow] requestVerification FAILED — ${msg}`)
       setError(msg)
       setStep('error')
       throw e
@@ -146,6 +154,7 @@ export function useRedeemFlow() {
     const address = useWalletStore.getState().address
     if (!address) throw new Error('Wallet no conectada')
 
+    console.log(`[RedeemFlow] publishVerification — escrowId=${escrowId} worker=${address}`)
     setStep('publishing')
     setError(null)
     try {
@@ -160,26 +169,31 @@ export function useRedeemFlow() {
         args: [escrowId],
       }) as `0x${string}`
 
+      console.log(`[RedeemFlow] getEncryptedHandle → ctHash=${ctHash}`)
+
       if (!ctHash || ctHash === '0x0000000000000000000000000000000000000000000000000000000000000000') {
         throw new Error('No hay handle encriptado — llama requestVerification primero')
       }
 
       // Decrypt via threshold network — returns plaintext + signature for on-chain submission
       const { value: result, signature } = await fheService.decryptBoolForTx(BigInt(ctHash))
+      console.log(`[RedeemFlow] decryptBoolForTx — result=${result} (${result ? 'condición CUMPLIDA ✓' : 'condición NO cumplida ✗'}) sigLen=${signature?.length}`)
 
       const data = encodeFunctionData({
         abi: PROOF_GATE_ABI,
         functionName: 'publishVerification',
         args: [escrowId, result, signature],
       })
-      await useWalletStore.getState().sendUserOperation([
+      const txHash = await useWalletStore.getState().sendUserOperation([
         { to: CONTRACTS.lendiProofGate, data },
       ])
+      console.log(`[RedeemFlow] publishVerification OK — txHash=${txHash} conditionMet=${result}`)
 
       setConditionStatus(result ? 'met' : 'not_met')
       setStep('idle')
     } catch (e: any) {
       const msg = e?.message ?? 'Error publicando verificación'
+      console.error(`[RedeemFlow] publishVerification FAILED — ${msg}`, e)
       setError(msg)
       setStep('error')
       throw e
@@ -189,6 +203,25 @@ export function useRedeemFlow() {
   const redeem = useCallback(async (escrowId: bigint): Promise<string> => {
     const address = useWalletStore.getState().address
     if (!address) throw new Error('Wallet no conectada')
+
+    console.log(`[RedeemFlow] redeem — escrowId=${escrowId} recipient=${address}`)
+    console.log(`[RedeemFlow] escrow contract=${CONTRACTS.escrow} gate=${CONTRACTS.lendiProofGate}`)
+
+    // Re-check condition right before redeem so we have a fresh log
+    try {
+      const stillMet = await publicClient.readContract({
+        address: CONTRACTS.lendiProofGate,
+        abi: PROOF_GATE_ABI,
+        functionName: 'isConditionMet',
+        args: [escrowId],
+      }) as boolean
+      console.log(`[RedeemFlow] pre-redeem isConditionMet=${stillMet}`)
+      if (!stillMet) {
+        console.warn('[RedeemFlow] WARNING: condition is NOT met — redeemAndUnwrap will revert')
+      }
+    } catch (checkErr: any) {
+      console.warn(`[RedeemFlow] pre-redeem isConditionMet REVERT — ${checkErr?.message ?? checkErr}`)
+    }
 
     setStep('redeeming')
     setError(null)
@@ -206,15 +239,18 @@ export function useRedeemFlow() {
       // gas overrides are impossible after the fact (paymaster signs over gas fields).
       // skipPaymaster routes through a no-paymaster kernel client; only the bundler
       // simulates, which uses the real Arbitrum Sepolia RPC that has CoFHE support.
+      console.log(`[RedeemFlow] sending redeemAndUnwrap UserOp — callGasLimit=3M skipPaymaster=true`)
       const hash = await useWalletStore.getState().sendUserOperation(
         [{ to: CONTRACTS.escrow, data }],
         { callGasLimit: 3_000_000n, verificationGasLimit: 500_000n, preVerificationGas: 200_000n, skipPaymaster: true },
       )
+      console.log(`[RedeemFlow] redeemAndUnwrap OK — txHash=${hash}`)
       setTxHash(hash)
       setStep('done')
       return hash
     } catch (e: any) {
       const msg = e?.message ?? 'Error redimiendo escrow'
+      console.error(`[RedeemFlow] redeemAndUnwrap FAILED — ${msg}`, e)
       setError(msg)
       setStep('error')
       throw e

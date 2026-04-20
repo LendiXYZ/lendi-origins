@@ -29,8 +29,11 @@ export function useLoanFlow() {
       const address = useWalletStore.getState().address
       if (!address) throw new Error('Wallet no conectada')
 
+      console.log(`[LoanFlow] execute — lender=${address} worker=${workerAddress} amount=${loanAmount} USDC threshold=${threshold} USDC`)
+
       // 1. Initialize Reineira SDK (FHE init ~2-5s)
       await reiineraService.initialize(address)
+      console.log('[LoanFlow] Reineira SDK initialized')
 
       // 2. Create off-chain record (backend)
       await ensureJwt()
@@ -41,20 +44,24 @@ export function useLoanFlow() {
         counterparty: workerAddress,
         metadata: { worker_address: workerAddress, threshold },
       })
+      console.log(`[LoanFlow] backend escrow created — public_id=${escrow.public_id}`)
 
       // 3. Wrap USDC → cUSDC, create escrow on-chain, fund with cUSDC
+      console.log('[LoanFlow] starting on-chain flow: wrap → create → fund')
       const { escrowId: id, txHash: hash } = await reiineraService.createLoanEscrow({
         lenderAddress: address,
         workerAddress,
         loanAmount: usdc(loanAmount),
         threshold: BigInt(Math.floor(threshold * 1_000_000)),
         onStep: (step) => {
+          console.log(`[LoanFlow] on-chain step: ${step}`)
           if (step === 'wrapping') setStep('wrapping')
           if (step === 'creating') setStep('submitting')
           if (step === 'funding') setStep('funding')
         },
       })
 
+      console.log(`[LoanFlow] createLoanEscrow OK — escrowId=${id} txHash=${hash}`)
       setTxHash(hash)
       setEscrowId(id)
 
@@ -62,15 +69,17 @@ export function useLoanFlow() {
       try {
         if (hash) {
           await EscrowService.reportTransaction(hash, escrow.public_id, id.toString())
+          console.log(`[LoanFlow] reportTransaction OK — escrowId=${id}`)
         }
-      } catch {
-        console.warn('[useLoanFlow] backend reportTransaction failed — non-fatal')
+      } catch (reportErr) {
+        console.warn('[LoanFlow] backend reportTransaction failed — non-fatal', reportErr)
       }
 
       setStep('done')
       return { txHash: hash, escrowId: id }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Error creando el escrow'
+      console.error(`[LoanFlow] FAILED — ${msg}`, e)
       setError(msg)
       setStep('error')
       throw e

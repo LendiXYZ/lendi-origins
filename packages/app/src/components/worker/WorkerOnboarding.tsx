@@ -59,8 +59,16 @@ export function WorkerOnboarding({ children }: WorkerOnboardingProps) {
         'registerWorker',
         [],
       )
-      setIsRegistered(true)
-      setTxState('done')
+      // Re-verify on-chain instead of trusting local state,
+      // so a silent tx failure doesn't let an unregistered worker through
+      const confirmed = await publicClient.readContract({
+        address:      CONTRACTS.lendiProof,
+        abi:          LENDI_PROOF_ABI as Abi,
+        functionName: 'registeredWorkers',
+        args:         [address as `0x${string}`],
+      })
+      setIsRegistered(confirmed as boolean)
+      setTxState(confirmed ? 'done' : 'error')
     } catch {
       setTxState('error')
     }

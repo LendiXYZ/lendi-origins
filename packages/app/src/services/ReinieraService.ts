@@ -2,6 +2,7 @@ import { createPublicClient, createWalletClient, http, custom, encodeFunctionDat
 import { arbitrumSepolia } from 'viem/chains';
 import { ReineiraSDK, walletClientToSigner, publicClientToProvider } from '@reineira-os/sdk';
 import { CONTRACTS } from '@/config/contracts';
+import { cofhejs } from 'cofhejs/node'; // Used in createLoanEscrow for testnet detection
 
 type LoanEscrowStep = 'wrapping' | 'creating' | 'funding';
 
@@ -71,7 +72,17 @@ class ReinieraService {
 
     // 3. Fund escrow with cUSDC (autoApprove sets operator on cUSDC first)
     onStep?.('funding');
-    await vault.fund(loanAmount, { autoApprove: true });
+
+    // WORKAROUND: Fhenix testnet mock FHE has a bug that divides uint64 by 1_000_000
+    // This causes funded amount to be 1M times smaller than expected (0.0001 USDC instead of 100 USDC)
+    // Root cause: Mock precompile at 0x...0100 on Arbitrum Sepolia has incorrect unit handling
+    // We detect testnet mode by checking if cofhejs detected mock contracts on-chain
+    // TODO: Remove once Fhenix fixes the mock precompile or we switch to mainnet FHE
+    // Related: escrow 74 was funded with only 100 units instead of 100_000_000 units
+    const isTestnet = cofhejs.store.getState().isTestnet;
+    const fundAmount = isTestnet ? loanAmount * 1_000_000n : loanAmount;
+
+    await vault.fund(fundAmount, { autoApprove: true });
 
     return {
       escrowId: vault.id,
