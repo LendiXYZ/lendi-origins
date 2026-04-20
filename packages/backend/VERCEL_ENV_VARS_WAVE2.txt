@@ -51,15 +51,34 @@ FHE_WORKER_URL=<si-aplica>
 REINEIRA_API_KEY=<si-aplica>
 
 # ============================================
+# AI ADVISOR (ZHIPU AI / Z.AI) - NUEVO
+# ============================================
+# API Key obtenida de: https://z.ai/manage-apikey/apikey-list
+
+ZAI_API_KEY=103d484596e34f13a1b0be04c0d26341.mGmrPLGs3Dl2d6mb
+ZAI_MODEL=glm-4.5-flash
+
+# Modelos disponibles:
+# - glm-4.5-flash (GRATIS, 2 requests concurrentes) - para desarrollo
+# - glm-4.5 (10 requests concurrentes) - para producción/demo
+# - glm-5.1 (1 request concurrente) - NO recomendado para demos
+
+# ============================================
 # INSTRUCCIONES
 # ============================================
 
 # 1. Ve a tu proyecto en Vercel Dashboard
 # 2. Settings > Environment Variables
-# 3. ACTUALIZA solo estas 3 variables (Wave 2):
+# 3. ACTUALIZA/AGREGA estas variables:
+#
+#    WAVE 2 CONTRACTS (actualizar):
 #    - LENDI_PROOF_ADDRESS
 #    - LENDI_PROOF_GATE_ADDRESS
 #    - LENDI_POLICY_ADDRESS
+#
+#    AI ADVISOR (nuevas):
+#    - ZAI_API_KEY
+#    - ZAI_MODEL
 #
 # 4. Asegúrate que estén configuradas para todos los environments:
 #    - Production
