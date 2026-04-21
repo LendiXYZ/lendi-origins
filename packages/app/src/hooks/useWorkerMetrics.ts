@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useWalletStore } from '@/stores/wallet-store';
-import { IncomeEventService } from '@/services/IncomeEventService';
+import { useAuthStore } from '@/stores/auth-store';
+import { IncomeEventService, IncomeEvent } from '@/services/IncomeEventService';
 import { WorkerService } from '@/services/WorkerService';
 
 export interface WorkerMetrics {
@@ -16,12 +17,13 @@ export interface WorkerMetrics {
  */
 export function useWorkerMetrics() {
   const address = useWalletStore((s) => s.address);
+  const hasJwt = useAuthStore((s) => s.hasJwt);
   const [metrics, setMetrics] = useState<WorkerMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!address) {
+    if (!address || !hasJwt()) {
       setLoading(false);
       return;
     }
@@ -38,15 +40,15 @@ export function useWorkerMetrics() {
       const worker = await WorkerService.getOrCreate(address!);
 
       // Get income events
-      const incomeEvents = await IncomeEventService.getByWorker(worker.id);
+      const incomeEvents = await IncomeEventService.getByWorkerId(worker.id);
 
       // Calculate days active (since first income record)
       let daysActive = 0;
       if (incomeEvents.length > 0) {
         const firstEvent = incomeEvents.sort(
-          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          (a: IncomeEvent, b: IncomeEvent) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         )[0];
-        const firstDate = new Date(firstEvent.createdAt);
+        const firstDate = new Date(firstEvent.created_at);
         const now = new Date();
         daysActive = Math.max(1, Math.floor((now.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24)));
       }
