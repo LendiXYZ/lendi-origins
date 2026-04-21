@@ -57,7 +57,7 @@ const postHandler = createHandler({
       });
     } catch (error: any) {
       console.error('[Feedback] Submission failed:', error.message);
-      return Response.serverError('Feedback submission failed');
+      return Response.internalServerError('Feedback submission failed', error.message);
     }
   },
 });

@@ -1,7 +1,4 @@
 import { SDK } from 'agent0-sdk';
-import { createWalletClient, http } from 'viem';
-import { sepolia } from 'viem/chains';
-import { privateKeyToAccount } from 'viem/accounts';
 import { getEnv } from '../../core/config.js';
 
 let sdkInstance: SDK | null = null;
@@ -18,15 +15,11 @@ function getSDK(): SDK {
       throw new Error('ETH_SEPOLIA_RPC_URL not configured');
     }
 
-    const account = privateKeyToAccount(env.ETH_SEPOLIA_PRIVATE_KEY as `0x${string}`);
-
-    const walletClient = createWalletClient({
-      account,
-      chain: sepolia,
-      transport: http(env.ETH_SEPOLIA_RPC_URL),
+    sdkInstance = new SDK({
+      chainId: 11155111, // Ethereum Sepolia
+      rpcUrl: env.ETH_SEPOLIA_RPC_URL,
+      privateKey: env.ETH_SEPOLIA_PRIVATE_KEY,
     });
-
-    sdkInstance = new SDK({ walletClient, chain: 'sepolia' });
   }
 
   return sdkInstance;
@@ -56,32 +49,34 @@ export async function submitVerificationFeedback(params: FeedbackParams): Promis
     throw new Error('LENDI_VERIFIER_URL not configured');
   }
 
-  const agentId = Number(env.AGENT_ID);
+  // Agent ID format: "chainId:agentId"
+  const agentIdString = `11155111:${env.AGENT_ID}`;
 
+  // Prepare optional off-chain feedback file with rich metadata
   const feedbackFile = sdk.prepareFeedbackFile({
-    agentId,
-    agentRegistry: `eip155:11155111:0x8004A818BFB912233c491871b3d84c89A494BD9e`,
-    clientAddress: `eip155:11155111:${params.lenderAddress}`,
-    value: params.eligible ? 100 : 0,
-    valueDecimals: 0,
-    tag1: 'income_verification',
-    tag2: 'fhe_proof',
-    endpoint: `${env.LENDI_VERIFIER_URL}/api/v1/verify/income`,
-    oasf: {
-      skills: ['lending_income_verification'],
-      domains: ['finance_and_business/financial_services/lending'],
-    },
+    text: params.eligible ? 'Income verification passed' : 'Income verification failed',
     // proofOfPayment — canonical ERC-8004 field linking x402 tx to reputation
     proofOfPayment: {
       fromAddress: params.lenderAddress,
       toAddress: params.x402ReceiverAddress,
-      chainId: '84532',
+      chainId: '84532', // Base Sepolia
       txHash: params.x402TxHash,
     },
   });
 
-  const txHash = await sdk.giveFeedback(feedbackFile);
+  // Give feedback (on-chain + off-chain metadata)
+  const tx = await sdk.giveFeedback(
+    agentIdString,
+    params.eligible ? 100 : 0, // value
+    'income_verification', // tag1
+    'fhe_proof', // tag2
+    `${env.LENDI_VERIFIER_URL}/api/v1/verify/income`, // endpoint
+    feedbackFile // off-chain file with proofOfPayment
+  );
 
-  console.log(`[Agent0] ERC-8004 reputation updated. TxHash: ${txHash}`);
-  return txHash;
+  // Wait for confirmation
+  const { receipt } = await tx.waitConfirmed({ timeoutMs: 180000 });
+
+  console.log(`[Agent0] ERC-8004 reputation updated. TxHash: ${receipt.transactionHash}`);
+  return receipt.transactionHash;
 }

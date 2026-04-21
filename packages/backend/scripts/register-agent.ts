@@ -1,7 +1,4 @@
 import { SDK } from 'agent0-sdk';
-import { createWalletClient, http } from 'viem';
-import { sepolia } from 'viem/chains';
-import { privateKeyToAccount } from 'viem/accounts';
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
@@ -21,22 +18,16 @@ async function registerAgent() {
     throw new Error('LENDI_VERIFIER_URL not found in .env');
   }
 
-  const account = privateKeyToAccount(process.env.ETH_SEPOLIA_PRIVATE_KEY as `0x${string}`);
-
-  console.log(`Signer address: ${account.address}`);
   console.log(`RPC URL: ${process.env.ETH_SEPOLIA_RPC_URL}`);
   console.log(`Verifier URL: ${process.env.LENDI_VERIFIER_URL}`);
   console.log('');
 
-  // Create wallet client
-  const walletClient = createWalletClient({
-    account,
-    chain: sepolia,
-    transport: http(process.env.ETH_SEPOLIA_RPC_URL),
-  });
-
   console.log('1️⃣  Creating Agent0 SDK instance...');
-  const sdk = new SDK({ walletClient, chain: 'sepolia' });
+  const sdk = new SDK({
+    chainId: 11155111, // Ethereum Sepolia
+    rpcUrl: process.env.ETH_SEPOLIA_RPC_URL,
+    privateKey: process.env.ETH_SEPOLIA_PRIVATE_KEY,
+  });
 
   console.log('2️⃣  Creating agent configuration...');
   const agent = await sdk.createAgent();
