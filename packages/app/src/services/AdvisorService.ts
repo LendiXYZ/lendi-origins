@@ -7,6 +7,7 @@ export interface AdvisorRequest {
   daysActive: number;
   platform?: string;
   question?: string;
+  monthlyIncomeUSDC?: number;
 }
 
 export interface AdvisorResponse {

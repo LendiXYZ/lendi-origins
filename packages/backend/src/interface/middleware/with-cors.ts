@@ -27,9 +27,14 @@ function resolveOrigin(requestOrigin: string | undefined): string {
 
 function setCorsHeaders(res: VercelResponse, origin: string): void {
   res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Max-Age', '86400');
+  // x402 requires X-PAYMENT header for micropayments
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization, X-Idempotency-Key, X-Wallet-Provider, X-PAYMENT'
+  );
+  res.setHeader('Access-Control-Max-Age', '0'); // Force no cache to bypass Vercel issue
 }
 
 export function withCors(handler: VercelHandler): VercelHandler {

@@ -1,0 +1,10 @@
+{
+  "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+  "name": "LendiVerifier",
+  "registrations": [
+    {
+      "agentId": "11155111:3477",
+      "agentRegistry": "eip155:11155111:0x8004A818BFB912233c491871b3d84c89A494BD9e"
+    }
+  ]
+}

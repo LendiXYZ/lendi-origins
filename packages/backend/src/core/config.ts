@@ -44,6 +44,18 @@ const EnvSchema = z.object({
 
   // FHE Worker
   FHE_WORKER_URL: z.string().default('http://localhost:3001'),
+
+  // ERC-8004 — ETH Sepolia
+  ETH_SEPOLIA_RPC_URL: z.string().url().optional(),
+  ETH_SEPOLIA_PRIVATE_KEY: z.string().optional(),
+  AGENT_ID: z.string().optional(),
+  LENDI_VERIFIER_URL: z.string().url().optional(),
+
+  // x402 — Base Sepolia
+  BASE_SEPOLIA_RPC_URL: z.string().url().optional(),
+  BASE_SEPOLIA_RECEIVER_ADDRESS: z.string().optional(),
+  X402_FACILITATOR_URL: z.string().url().default('https://x402.org/facilitator'),
+  X402_PRICE_USDC: z.coerce.number().default(0.001),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
