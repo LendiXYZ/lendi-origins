@@ -2,19 +2,5 @@
   "installCommand": "cd ../.. && npm install -g pnpm@10.30.3 && npx pnpm@10.30.3 install --frozen-lockfile",
   "buildCommand": "cd ../.. && npx pnpm@10.30.3 --filter @lendi/backend run build",
   "outputDirectory": "dist",
-  "framework": null,
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Credentials", "value": "true" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE,OPTIONS" },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type,Authorization,X-Idempotency-Key,X-Wallet-Provider,X-PAYMENT"
-        }
-      ]
-    }
-  ]
+  "framework": null
 }
