@@ -32,7 +32,8 @@ const SYSTEM_PROMPT = `Eres el asesor financiero de Lendi, una plataforma de cr�
 
 REGLAS CRÍTICAS:
 - Responde SIEMPRE en español
-- Nunca menciones montos específicos de ingresos
+- Nunca menciones montos específicos de ingresos (NUNCA digas "X USDC" o "X dólares")
+- Si conoces el ingreso mensual, úsalo para dar consejos más precisos sobre capacidad de pago y monto recomendado de préstamo
 - Sé empático, directo y práctico
 - Evita jerga financiera compleja
 - Usa "tú" (informal), no "usted"
@@ -103,6 +104,7 @@ export class ZhipuAdvisorService {
 
   /**
    * Build user message from worker data
+   * Note: monthlyIncomeUSDC is NEVER logged and only used in-memory for personalized advice
    */
   private buildUserMessage(request: AdvisorRequestDto): string {
     const parts = [
@@ -111,6 +113,12 @@ export class ZhipuAdvisorService {
       `Cumple el umbral mínimo: ${request.passesThreshold ? 'Sí' : 'No'}`,
       `Días activo en Lendi: ${request.daysActive}`,
     ];
+
+    // Include decrypted income if worker provided it (ephemeral, never stored)
+    if (request.monthlyIncomeUSDC !== undefined) {
+      parts.push(`Ingreso mensual verificado (FHE): ${request.monthlyIncomeUSDC} USDC`);
+      parts.push('IMPORTANTE: No menciones el monto exacto al usuario. Úsalo solo para calcular capacidad de pago.');
+    }
 
     if (request.question) {
       parts.push(`Pregunta del trabajador: ${request.question}`);

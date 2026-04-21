@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { AdvisorService, type AdvisorResponse } from '@/services/AdvisorService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useLendiProof } from '@/hooks/useLendiProof';
+import { useCofhe } from '@/hooks/useCofhe';
 
 interface AIAdvisorProps {
   workerAddress: string;
@@ -24,6 +26,14 @@ export function AIAdvisor({
   const [question, setQuestion] = useState('');
   const [asking, setAsking] = useState(false);
 
+  // FHE decrypt state
+  const [decryptedIncome, setDecryptedIncome] = useState<number | null>(null);
+  const [decrypting, setDecrypting] = useState(false);
+
+  // FHE hooks
+  const { getMyMonthlyIncome } = useLendiProof();
+  const { unsealIncome } = useCofhe();
+
   // Fetch initial advice on mount or when income records change
   useEffect(() => {
     fetchAdvice();
@@ -41,6 +51,8 @@ export function AIAdvisor({
         daysActive,
         platform,
         question: customQuestion,
+        // Pass decrypted income ephemerally if available
+        monthlyIncomeUSDC: decryptedIncome ?? undefined,
       });
       setAdvice(response);
     } catch (err: any) {
@@ -55,6 +67,35 @@ export function AIAdvisor({
     } finally {
       setLoading(false);
       setAsking(false);
+    }
+  }
+
+  async function handleDecryptIncome() {
+    setDecrypting(true);
+    setError(null);
+
+    try {
+      console.log('[AIAdvisor] Starting income decryption...');
+
+      // Step 1: Get encrypted handle from contract (Arbitrum Sepolia)
+      const handle = await getMyMonthlyIncome();
+      console.log('[AIAdvisor] Got encrypted handle:', handle);
+
+      // Step 2: Decrypt in browser via CoFHE (10-30s)
+      // Income NEVER leaves the device until passed ephemerally to advisor
+      const plaintext = await unsealIncome(handle);
+      console.log('[AIAdvisor] Income decrypted successfully');
+
+      // Step 3: Store in local state only
+      setDecryptedIncome(Number(plaintext));
+
+      // Step 4: Refresh advice with real income
+      await fetchAdvice();
+    } catch (err: any) {
+      console.error('[AIAdvisor] Decrypt failed:', err);
+      setError('No pudimos descifrar tus ingresos. Intenta de nuevo más tarde.');
+    } finally {
+      setDecrypting(false);
     }
   }
 
@@ -183,6 +224,34 @@ export function AIAdvisor({
       <p className="mb-6 text-center text-sm italic text-[var(--text-secondary)]">
         {advice.encouragement}
       </p>
+
+      {/* Decrypt Income Button */}
+      {!decryptedIncome && (
+        <div className="mb-4 border-t border-[var(--border-dark)] pt-4">
+          <Button
+            variant="primary"
+            loading={decrypting}
+            disabled={decrypting}
+            onClick={handleDecryptIncome}
+            className="w-full"
+          >
+            {decrypting
+              ? '🔓 Descifrando... (puede tardar 30s)'
+              : '🔒 Descifrar mis ingresos para mejor consejo'}
+          </Button>
+          <p className="mt-2 text-center text-xs text-[var(--text-secondary)]">
+            Tus ingresos se descifran en tu navegador y nunca se almacenan
+          </p>
+        </div>
+      )}
+
+      {decryptedIncome && (
+        <div className="mb-4 rounded-lg border border-green-500/20 bg-green-500/10 p-3">
+          <p className="text-center text-sm font-medium text-green-400">
+            ✅ Ingresos verificados — consejo personalizado activado
+          </p>
+        </div>
+      )}
 
       {/* Ask Question Form */}
       <form onSubmit={handleAskQuestion} className="flex flex-col gap-3 border-t border-[var(--border-dark)] pt-4">
