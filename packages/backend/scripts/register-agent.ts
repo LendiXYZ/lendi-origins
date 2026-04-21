@@ -27,22 +27,31 @@ async function registerAgent() {
     chainId: 11155111, // Ethereum Sepolia
     rpcUrl: process.env.ETH_SEPOLIA_RPC_URL,
     privateKey: process.env.ETH_SEPOLIA_PRIVATE_KEY,
+    validateOASF: false, // Skip OASF domain validation
   });
 
   console.log('2️⃣  Creating agent configuration...');
-  const agent = await sdk.createAgent();
+  const agent = sdk.createAgent(
+    'LendiVerifier',
+    'Privacy-first income verifier for informal workers in Latin America. Prove what you earn. Reveal nothing.',
+    'https://lendi-origin.vercel.app/logo.png'
+  );
 
   // Configure agent
   agent.setX402Support(true);
   agent.setActive(true);
-  agent.addDomain('finance_and_business/financial_services/lending', true);
-  agent.addSkill('natural_language_processing/text_classification');
+  agent.setTrust(true, true, false); // reputation, cryptoEconomic, teeAttestation
+  // Skip domain validation - agent0-sdk OASF validation too strict for custom domains
+  // agent.addDomain('finance_and_business/financial_services/lending', true);
+  // agent.addSkill('natural_language_processing/text_classification');
 
   console.log('3️⃣  Registering agent via HTTP...');
   console.log(`    Metadata URL: ${process.env.LENDI_VERIFIER_URL}/agent.json`);
 
   // HTTP registration — no Pinata required
-  const agentId = await agent.registerHTTP(`${process.env.LENDI_VERIFIER_URL}/agent.json`);
+  const tx = await agent.registerHTTP(`${process.env.LENDI_VERIFIER_URL}/agent.json`);
+  const { result: registrationFile } = await tx.waitConfirmed({ timeoutMs: 180000 });
+  const agentId = registrationFile.agentId;
 
   console.log('');
   console.log('═'.repeat(80));
