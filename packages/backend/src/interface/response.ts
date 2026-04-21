@@ -73,6 +73,20 @@ export const Response = {
     };
   },
 
+  paymentRequired(title: string, detail?: string): HttpResponse {
+    return {
+      statusCode: 402,
+      headers: {
+        ...defaultHeaders(),
+        'X-Payment-Protocol': 'x402',
+        'X-Payment-Amount': '0.001',
+        'X-Payment-Currency': 'USDC',
+        'X-Payment-Network': 'base-sepolia',
+      },
+      body: JSON.stringify(ErrorResponseDtoFactory.create(402, title, detail)),
+    };
+  },
+
   forbidden(title: string, detail?: string): HttpResponse {
     return {
       statusCode: 403,
