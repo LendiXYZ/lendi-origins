@@ -1,36 +1,46 @@
+import { AIAdvisor } from '@/components/worker/AIAdvisor'
+import { WorkerOnboarding } from '@/components/worker/WorkerOnboarding'
+import { useWorkerMetrics } from '@/hooks/useWorkerMetrics'
+import { useWalletStore } from '@/stores/wallet-store'
 import { strings } from '@/i18n'
 
 export function WorkerAdvisorPage() {
+  const address = useWalletStore((s) => s.address)
+  const { metrics, loading, error } = useWorkerMetrics()
+
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          {strings.worker.advisor.title}
-        </h1>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">
-          {strings.worker.advisor.subtitle}
-        </p>
-      </div>
-
-      {/* Phase 8: useAIAdvisor + @mlc-ai/web-llm */}
-      {/* Model: Llama-3.2-3B-Instruct-q4f32_1-MLC */}
-      {/* Income passed in RAM only — zero server calls */}
-
-      <div className="rounded-xl border border-[var(--border-dark)] bg-[var(--surface-raised)] p-6">
-        <p className="text-sm text-[var(--text-muted)]">
-          WebLLM Advisor — disponible en Fase 8
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {strings.worker.advisor.suggestions.map((s) => (
-            <span
-              key={s}
-              className="rounded-full border border-[var(--border-dark)] px-3 py-1 text-xs text-[var(--text-muted)]"
-            >
-              {s}
-            </span>
-          ))}
+    <WorkerOnboarding>
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+            {strings.worker.advisor.title}
+          </h1>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            {strings.worker.advisor.subtitle}
+          </p>
         </div>
+
+        {loading ? (
+          <div className="rounded-xl border border-[var(--border-dark)] bg-[var(--surface-raised)] p-6">
+            <div className="flex items-center gap-3">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+              <p className="text-[var(--text-secondary)]">Cargando tus datos...</p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-6">
+            <p className="text-red-400">{error}</p>
+          </div>
+        ) : metrics && address ? (
+          <AIAdvisor
+            workerAddress={address}
+            incomeRecordsCount={metrics.incomeRecordsCount}
+            passesThreshold={metrics.passesThreshold}
+            daysActive={metrics.daysActive}
+            platform={metrics.platform}
+          />
+        ) : null}
       </div>
-    </div>
+    </WorkerOnboarding>
   )
 }

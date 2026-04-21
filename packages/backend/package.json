@@ -38,6 +38,7 @@
   "devDependencies": {
     "@types/node": "^22",
     "drizzle-kit": "^0.30",
+    "fhenixjs": "^0.4.1",
     "tsup": "^8",
     "tsx": "^4",
     "typescript": "^5.7",
