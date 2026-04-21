@@ -1,4 +1,4 @@
-import { Agent0SDK } from 'agent0-sdk';
+import { SDK } from 'agent0-sdk';
 import { createWalletClient, http } from 'viem';
 import { sepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -36,7 +36,7 @@ async function registerAgent() {
   });
 
   console.log('1️⃣  Creating Agent0 SDK instance...');
-  const sdk = new Agent0SDK({ walletClient, chain: 'sepolia' });
+  const sdk = new SDK({ walletClient, chain: 'sepolia' });
 
   console.log('2️⃣  Creating agent configuration...');
   const agent = await sdk.createAgent();

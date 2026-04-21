@@ -1,12 +1,12 @@
-import { Agent0SDK } from 'agent0-sdk';
+import { SDK } from 'agent0-sdk';
 import { createWalletClient, http } from 'viem';
 import { sepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import { getEnv } from '../../core/config.js';
 
-let sdkInstance: Agent0SDK | null = null;
+let sdkInstance: SDK | null = null;
 
-function getSDK(): Agent0SDK {
+function getSDK(): SDK {
   if (!sdkInstance) {
     const env = getEnv();
 
@@ -26,7 +26,7 @@ function getSDK(): Agent0SDK {
       transport: http(env.ETH_SEPOLIA_RPC_URL),
     });
 
-    sdkInstance = new Agent0SDK({ walletClient, chain: 'sepolia' });
+    sdkInstance = new SDK({ walletClient, chain: 'sepolia' });
   }
 
   return sdkInstance;
