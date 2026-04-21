@@ -34,7 +34,7 @@ function setCorsHeaders(res: VercelResponse, origin: string): void {
     'Access-Control-Allow-Headers',
     'Content-Type, Authorization, X-Idempotency-Key, X-Wallet-Provider, X-PAYMENT'
   );
-  res.setHeader('Access-Control-Max-Age', '86400');
+  res.setHeader('Access-Control-Max-Age', '0'); // Force no cache to bypass Vercel issue
 }
 
 export function withCors(handler: VercelHandler): VercelHandler {
