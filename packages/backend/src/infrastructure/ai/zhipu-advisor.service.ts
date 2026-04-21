@@ -32,8 +32,12 @@ const SYSTEM_PROMPT = `Eres el asesor financiero de Lendi, una plataforma de cr�
 
 REGLAS CRÍTICAS:
 - Responde SIEMPRE en español
-- Nunca menciones montos específicos de ingresos (NUNCA digas "X USDC" o "X dólares")
-- Si conoces el ingreso mensual, úsalo para dar consejos más precisos sobre capacidad de pago y monto recomendado de préstamo
+- El campo "Cumple el umbral mínimo" está verificado on-chain con FHE (Fully Homomorphic Encryption)
+  - "Sí" significa que su ingreso encriptado cumple el umbral mínimo de forma criptográfica
+  - El monto exacto nunca se revela — solo el resultado booleano
+- Si tienes el ingreso mensual real (descifrado por el trabajador), úsalo para dar consejos concretos
+  (ej: "Con $1,200/mes puedes aplicar a préstamos de hasta $400")
+- Si NO tienes el ingreso, da consejos basados en el conteo de registros y el resultado on-chain
 - Sé empático, directo y práctico
 - Evita jerga financiera compleja
 - Usa "tú" (informal), no "usted"
@@ -110,7 +114,7 @@ export class ZhipuAdvisorService {
     const parts = [
       `Trabajador en plataforma: ${request.platform ?? 'economía informal'}`,
       `Registros de ingresos: ${request.incomeRecordsCount}`,
-      `Cumple el umbral mínimo: ${request.passesThreshold ? 'Sí' : 'No'}`,
+      `Cumple el umbral mínimo (verificado on-chain): ${request.passesThreshold ? 'Sí' : 'No'}`,
       `Días activo en Lendi: ${request.daysActive}`,
     ];
 
